@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SocialTool.Api/SocialTool.Api.csproj" />
+    <Project Path="src/SocialTool.Application/SocialTool.Application.csproj" />
+    <Project Path="src/SocialTool.Domain/SocialTool.Domain.csproj" />
+    <Project Path="src/SocialTool.Infrastructure/SocialTool.Infrastructure.csproj" />
+  </Folder>
+</Solution>

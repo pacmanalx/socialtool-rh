@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<!-- saved from url=(0032)https://app.feedz.com.br/inicio# -->
+<html lang="pt-BR" class="fdz-menu-mode-resolved fdz-desktop-menu-mode"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+                <meta name="csrf-token" data-name-key="csrf_name" data-name-value="csrf6ab1799618750" data-value-key="csrf_value" data-value-value="28b72bea93b4d4bd38a56b1badd2c297" content="">
+            
+
+	
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+	<script src="./assets/cb=gapi.loaded_0" async=""></script><script type="text/javascript" async="" src="./assets/vfnkkwu1"></script><script type="text/javascript" async="" src="./assets/mixpanel-2-latest.min.js"></script><script type="text/javascript" async="" src="./assets/analytics.js"></script><script type="text/javascript" async="" src="./assets/js"></script><script>
+        const MENU_V2_ENABLED = false;
+        const WINDOW_INNER_WIDTH = 767;
+
+		(function () {
+			var root = document.documentElement;
+			var resizeFrame = null;
+			var lastResolvedMenuMode = null;
+			var touchStateQueries = [];
+
+			if (window.matchMedia) {
+				touchStateQueries = [
+					window.matchMedia('(pointer: coarse)'),
+					window.matchMedia('(any-pointer: coarse)'),
+					window.matchMedia('(hover: none)'),
+					window.matchMedia('(any-hover: none)')
+				];
+			}
+
+			function hasTouchScreen() {
+				return ('ontouchstart' in window)
+					|| (navigator.maxTouchPoints || 0) > 0
+					|| (navigator.msMaxTouchPoints || 0) > 0
+					|| (navigator.MaxTouchPoints || 0) > 0
+					|| touchStateQueries.some(function (query) {
+						return query.matches;
+					});
+			}
+
+			function isMobileDevice() {
+                return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+            }
+
+            function shouldUseMobileMenu() {
+                if (MENU_V2_ENABLED) {
+                    return hasTouchScreen() || isMobileDevice() || window.innerWidth <= WINDOW_INNER_WIDTH;
+                }
+
+                return isMobileDevice() || window.innerWidth <= WINDOW_INNER_WIDTH;
+            }
+
+			function applyResolvedMenuMode() {
+				var useMobileMenu = shouldUseMobileMenu();
+                var hasTouch = useMobileMenu;
+				var nextResolvedMenuMode = useMobileMenu ? 'mobile' : 'desktop';
+
+				root.classList.add('fdz-menu-mode-resolved');
+				root.classList.toggle('fdz-mobile-menu-mode', useMobileMenu);
+				root.classList.toggle('fdz-desktop-menu-mode', !useMobileMenu);
+				root.classList.toggle('fdz-touchscreen-menu', hasTouch);
+
+				if (document.body) {
+					document.body.classList.toggle('fdz-touchscreen-menu', hasTouch);
+				}
+
+				if (lastResolvedMenuMode !== nextResolvedMenuMode) {
+					lastResolvedMenuMode = nextResolvedMenuMode;
+					window.dispatchEvent(new CustomEvent('fdz-menu-mode-change', {
+						detail: {
+							mode: nextResolvedMenuMode,
+							hasTouchScreen: hasTouch
+						}
+					}));
+					return;
+				}
+
+				window.dispatchEvent(new CustomEvent('fdz-touch-capability-change', {
+					detail: {
+						mode: nextResolvedMenuMode,
+						hasTouchScreen: hasTouch
+					}
+				}));
+			}
+
+			function syncResolvedMenuMode() {
+				if (resizeFrame !== null) {
+					window.cancelAnimationFrame(resizeFrame);
+				}
+
+				resizeFrame = window.requestAnimationFrame(function () {
+					resizeFrame = null;
+					applyResolvedMenuMode();
+				});
+			}
+
+			window.fdzHasTouchScreen = hasTouchScreen;
+			window.fdzShouldUseMobileMenu = shouldUseMobileMenu;
+			window.fdzApplyResolvedMenuMode = applyResolvedMenuMode;
+
+			applyResolvedMenuMode();
+			window.addEventListener('resize', syncResolvedMenuMode);
+			window.addEventListener('orientationchange', applyResolvedMenuMode);
+
+			touchStateQueries.forEach(function (query) {
+				if (query.addEventListener) {
+					query.addEventListener('change', syncResolvedMenuMode);
+					return;
+				}
+
+				if (query.addListener) {
+					query.addListener(syncResolvedMenuMode);
+				}
+			});
+		})();
+	</script>
+	<style>
+		html:not(.fdz-menu-mode-resolved) #fdz-menu-box-side-menu,
+		html:not(.fdz-menu-mode-resolved) #fdz-sidebar-menu,
+		html.fdz-desktop-menu-mode #fdz-menu-box-side-menu,
+		html.fdz-mobile-menu-mode #fdz-sidebar-menu {
+			display: none !important;
+		}
+	</style>
+	<meta name="description" content="
+
+
+
+
+TOTVS RH é uma plataforma de engajamento de equipes que auxilia na redução de turnover e fornece aos líderes ferramentas para melhorar a cultura e o desempenho da empresa.">
+	<meta name="author" content="Feedz Tecnologia LTDA.">
+
+    <link rel="shortcut icon" type="image/png" href="https://app.feedz.com.br/assets/images/totvs-favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="shortcut icon" type="image/png" href="https://app.feedz.com.br/assets/images/totvs-favicon-dark.png" media="(prefers-color-scheme: dark)">
+
+	<title>TOTVS RH </title>
+    <link href="./assets/bootstrap.min.css" rel="stylesheet">
+
+	<!-- Custom CSS -->
+	<link href="./assets/simple-sidebar.css" rel="stylesheet">
+	<link href="./assets/all.min.css" rel="stylesheet">
+	<link href="./assets/v4-shims.min.css" rel="stylesheet">
+	<link href="./assets/sweetalert.css" rel="stylesheet">
+	<link href="./assets/mention.css" rel="stylesheet">
+	<link href="./assets/closi.min-1790015209.css" rel="stylesheet">
+	<link rel="stylesheet" media="print" href="./assets/print.css">
+	<link href="./assets/cropper.min.css" rel="stylesheet">
+	<link href="./assets/css2" rel="stylesheet">
+
+	<link href="./assets/select2-4.0.13.min.css" rel="stylesheet">
+
+
+	<link href="./assets/jquery.atwho.css" rel="stylesheet">
+	<link href="./assets/materialdesignicons.min.css" rel="stylesheet">
+	<link href="./assets/pretty-checkbox.min.css" rel="stylesheet">
+	<script src="./assets/platform.js" async="" defer="" gapi_processed="true"></script>
+
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async="" src="./assets/js(1)"></script>
+	<script>
+		var host = window.location.hostname;
+		if (host != 'feedz.local' && host != 'localhost') {
+			//console.log('loading ga');
+			window.dataLayer = window.dataLayer || [];
+			function gtag() { dataLayer.push(arguments); }
+			gtag('js', new Date());
+			gtag('config', 'UA-112876276-2');
+			gtag('config', 'GA_TRACKING_ID', {
+				'user_id': '2939451',
+				'company_id': '8351'
+			});
+			gtag('set', { 'user_id': '2939451' });
+		}
+	</script>
+
+        <script>
+        (function(f,b){if(!b.__SV){var e,g,i,h;window.mixpanel=b;b._i=[];b.init=function(e,f,c){function g(a,d){var b=d.split(".");2==b.length&&(a=a[b[0]],d=b[1]);a[d]=function(){a.push([d].concat(Array.prototype.slice.call(arguments,0)))}}var a=b;"undefined"!==typeof c?a=b[c]=[]:c="mixpanel";a.people=a.people||[];a.toString=function(a){var d="mixpanel";"mixpanel"!==c&&(d+="."+c);a||(d+=" (stub)");return d};a.people.toString=function(){return a.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split(" ");
+        for(h=0;h<i.length;h++)g(a,i[h]);var j="set set_once union unset remove delete".split(" ");a.get_group=function(){function b(c){d[c]=function(){call2_args=arguments;call2=[c].concat(Array.prototype.slice.call(call2_args,0));a.push([e,call2])}}for(var d={},e=["get_group"].concat(Array.prototype.slice.call(arguments,0)),c=0;c<j.length;c++)b(j[c]);return d};b._i.push([e,f,c])};b.__SV=1.2;e=f.createElement("script");e.type="text/javascript";e.async=!0;e.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?
+        MIXPANEL_CUSTOM_LIB_URL:"file:"===f.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";g=f.getElementsByTagName("script")[0];g.parentNode.insertBefore(e,g)}})(document,window.mixpanel||[]);
+
+        mixpanel.init('707f3a612c5d8c948cd612400197fc0f', {debug: 0, ignore_dnt: true});
+        mixpanel.identify('2939451');
+        mixpanel.people.set({
+            'role': 'Administrador',
+            'id_company': '8351',
+            'company_curve': 'B',
+            'company_name': 'SALC GROUP',
+            '$email': 'alexandre.pereira@hinodegroup.net',
+            '$name': 'ALEXANDRE CASTRO P DA SILVA'
+        });
+        mixpanel.set_group('company', '8351');
+        mixpanel.set_group('role', 'Administrador');
+        mixpanel.track('Page View', {'route': '/inicio'});
+    </script>
+
+	<script src="./assets/OneSignalSDK.js" async=""></script>
+	<script>
+        var OneSignal = window.OneSignal || [];
+        OneSignal.push(function () {
+            OneSignal.init({
+                appId: "e8b519c2-16e2-445e-813c-cdca0fb491c7",
+                autoRegister: false,
+                autoResubscribe: true,
+                safari_web_id: "web.onesignal.auto.49d2239d-a04e-422a-89e0-14dbda97fb4d",
+                notifyButton: {
+                    enable: true,
+                },
+                allowLocalhostAsSecureOrigin: true,
+                welcomeNotification: {
+                    title: "Inscrição",
+                    message: "Obrigado por se inscrever!"
+                },
+                promptOptions: {
+                    actionMessage: "Fique sempre atualizado com o que acontece na Feedz",
+                    acceptButtonText: "Permitir",
+                    cancelButtonText: "Não, obrigado",
+                    slidedown: {
+                        enabled: true,
+                        autoPrompt: true,
+                        timeDelay: 20,
+                        pageViews: 3
+                    }
+                },
+                notifyButton: {
+                    enable: true, /* Required to use the Subscription Bell */
+                    size: "small", /* One of 'small', 'medium', or 'large' */
+                    theme: "default", /* One of 'default' (red-white) or 'inverse" (white-red) */
+                    position: "bottom-left", /* Either 'bottom-left' or 'bottom-right' */
+                    offset: {
+                        bottom: "5px",
+                        left: "5px", /* Only applied if bottom-left */
+                        right: "5px" /* Only applied if bottom-right */
+                    },
+                    showCredit: false, /* Hide the OneSignal logo */
+                    text: {
+                        "tip.state.unsubscribed": "Se inscreva nas notificações",
+                        "tip.state.subscribed": "Você está inscrito para receber notificações",
+                        "tip.state.blocked": "Você bloqueou notificações",
+                        "message.prenotify": "Clique para se inscrever nas notificações",
+                        "message.action.subscribed": "Obrigado por se inscrever!",
+                        "message.action.resubscribed": "Você está inscrito para receber notificações",
+                        "message.action.unsubscribed": "Você não receberá notificações novamente",
+                        "dialog.main.title": "Gerenciar notificações do site",
+                        "dialog.main.button.subscribe": "SE INSCREVER",
+                        "dialog.main.button.unsubscribe": "CANCELAR INSCRIÇÃO",
+                        "dialog.blocked.title": "Desbloquear notificações",
+                        "dialog.blocked.message": "Siga estas instruções para permitir notificações:"
+                    },
+                    colors: { // Customize the colors of the main button and dialog popup button
+                        "circle.background": "rgb(0,104,179)",
+                        "circle.foreground": "white",
+                        "badge.background": "rgb(0,104,179)",
+                        "badge.foreground": "white",
+                        "badge.bordercolor": "white",
+                        "pulse.color": "white",
+                        "dialog.button.background.hovering": "rgb(0, 70, 120)",
+                        "dialog.button.background.active": "rgb(0, 44, 89)",
+                        "dialog.button.background": "rgb(42,59,76)",
+                        "dialog.button.foreground": "white"
+                    },
+                    /* SHOW/HIDE SUBSCRIPTION BELL */
+                    displayPredicate: function() {
+                        // Display bell, but hide after some time if user is already subscribed
+                        OneSignal.isPushNotificationsEnabled()
+                            .then(function(isPushEnabled) {
+                                if(isPushEnabled){
+                                    setTimeout(function() {
+                                        $("#onesignal-bell-container").hide();
+                                    }, 10000); // 10000 milissegundos = 10 segundos
+                                }
+                            });
+                        return true;
+
+                        // Hide subscription bell when user subscribed
+                        // return OneSignal.isPushNotificationsEnabled()
+                        //     .then(function(isPushEnabled) {
+                        //         return !isPushEnabled;
+                        //     });
+                    }
+                }
+            });
+
+            OneSignal.setExternalUserId("2939451");
+
+            OneSignal.getUserId(function (subscriptionId) {
+                // console.log("Subscription ID:", subscriptionId);
+                if (subscriptionId) {
+                    // This form below can NOT send more than 2 tags on free tier. It bugs all tags
+                    // OneSignal.sendTags({
+                    //     "company_id": "8351",
+                    //     "role": "1"/*,
+                    //     "name": "ALEXANDRE CASTRO P DA SILVA",
+                    //     "email": "alexandre.pereira@hinodegroup.net",
+                    //     "id": "2939451",
+                    //     "company": "SALC GROUP",*/
+                    // }).then(function(tagsSent) {
+                    //     // Callback called when tags have finished sending
+                    // });
+
+                    // This form below can send more than 2 tags even on free tier
+                    OneSignal.push(["sendTag", "company_id", "8351"]);
+                    OneSignal.push(["sendTag", "role", "1"]);
+                    OneSignal.push(["sendTag", "name", "ALEXANDRE CASTRO P DA SILVA"]);
+                    OneSignal.push(["sendTag", "email", "alexandre.pereira@hinodegroup.net"]);
+                    OneSignal.push(["sendTag", "id", "2939451"]);
+                    OneSignal.push(["sendTag", "company", "SALC GROUP"]);
+                    $.post("/perfil/push", { 'push': subscriptionId });
+                }
+            });
+        });
+	</script>
+    <script>
+    (function (c, s, q, u, a, r, e) {
+        c.hj=c.hj||function(){(c.hj.q=c.hj.q||[]).push(arguments)};
+        c._hjSettings = { hjid: a };
+        r = s.getElementsByTagName('head')[0];
+        e = s.createElement('script');
+        e.async = true;
+        e.src = q + c._hjSettings.hjid + u;
+        r.appendChild(e);
+    })(window, document, 'https://static.hj.contentsquare.net/c/csq-', '.js', 6676809);
+    </script><script async="" src="./assets/csq-6676809.js"></script>
+
+<style media="screen">
+		body {
+			background-color: #026EB7;
+		}
+	</style><link rel="stylesheet" type="text/css" href="./assets/7274.52611c00.css"><script src="./assets/OneSignalPageSDKES6.js" async=""></script><script type="text/javascript" async="" src="./assets/tag.js"></script><cs-native-frame-holder hidden=""><template shadowrootmode="closed"><iframe id="cs-native-frame" title="Intentionally blank" hidden="" sandbox="allow-same-origin"></iframe></template></cs-native-frame-holder><link rel="stylesheet" href="./assets/OneSignalSDKStyles.css"></head>
+
+	
+
+<body id="body">
+	<div class="skipLink" style="display: none;">
+		<a tabindex="1" href="https://app.feedz.com.br/inicio#fdz-main-sidebar">Pular para conteúdo principal</a>
+	</div>
+
+
+	<input id="plataform_lang" value="Carregando..." type="hidden">
+	<header id="fdz-menu" class="fdz-header-menu-sidebar">
+
+  <nav class="fdz-menu-top navbar navbar-default navbar-default-top">
+
+    <div class="container-header-sidebar container-header-sidebar--padding">
+
+      <div class="fdz-menu-top-box">
+
+        <div id="fdz-menu-box-side-menu" class="visible-xs custom-scrollbar">
+          <button tabindex="1" type="button" class="fdz-side-menu-hamburger navbar-toggle collapsed " style="float: none;" onclick="openFdzSideMenu()">
+    <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+    </button>
+
+<div id="fdz-side-menu" style="width: 0px;">
+    <div class="fdz-side-menu-logo">
+        <a tabindex="1" href="https://app.feedz.com.br/inicio#" class="navbar-brand">
+                        <img src="./assets/048808b3861eedf15628daffe9f9d477.png">
+                    </a>
+        <a tabindex="1" href="javascript:void(0)" class="closebtn" onclick="closeFdzSideMenu()">×</a>
+    </div>
+
+            
+
+<ul class="nav navbar-nav" style="margin-top: 2px;">
+
+        <li class="fdz-menu-nav-inicio fdz-menu-active-item" id="fdz-main-menu-home">
+        <a tabindex="1" href="https://app.feedz.com.br/inicio">Início <span class="sr-only">(current)</span></a>
+    </li>
+    
+        <li class="fdz-menu-nav-celebracoes" id="fdz-main-menu-celebrations">
+        <a tabindex="1" id="fdz-cmps-menu-celebration" href="https://app.feedz.com.br/celebracoes">
+            Celebrações
+        </a>
+    </li>
+    
+        <li class="dropdown fdz-menu-nav-feedbacks fdz-menu-nav-1on1 fdz-menu-nav-plano" id="fdz-main-menu-development">
+
+        <a tabindex="1" id="fdz-cmps-menu-development" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Desenvolvimento <span class="caret"></span>
+        </a>
+
+        <ul class="fdz-menu-dropdown dropdown-menu">
+            
+                        <li>
+                <a tabindex="1" id="fdz-cmps-menu-development-send-feedback" href="https://app.feedz.com.br/feedbacks/novo">Enviar Feedback</a>
+            </li>
+            
+            <li>
+                <a tabindex="1" id="fdz-cmps-menu-development-feedback" href="https://app.feedz.com.br/feedbacks">Feedbacks</a>
+            </li>
+            
+            
+                        <li>
+                <a tabindex="1" href="https://app.feedz.com.br/trilhas">
+                    Meus Planos de Desenvolvimento                </a>
+            </li>
+            
+                            <li>
+                    <a tabindex="1" id="fdz-cmps-menu-development-1on1-meetings" href="https://app.feedz.com.br/1on1">Reuniões 1:1</a>
+                </li>
+                    </ul>
+    </li>
+    
+    
+    
+    
+    
+    
+            <li class="dropdown fdz-menu-nav-enps fdz-menu-nav-pesquisa fdz-menu-nav-super" id="fdz-main-menu-surveys">
+
+        <a tabindex="1" id="fdz-cmps-menu-surveys" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            Pesquisas <span class="caret"></span>
+        </a>
+
+        <ul class="fdz-menu-dropdown dropdown-menu">
+                        <li>
+                <a tabindex="1" href="https://app.feedz.com.br/enps">Pesquisa de Satisfação</a>
+            </li>
+            
+                        <li>
+                <a tabindex="1" id="fdz-cmps-menu-surveys-fast-survey" href="https://app.feedz.com.br/pesquisa-rapida">Pesquisa Rápida</a>
+            </li>
+            
+                        <li>
+                <a tabindex="1" id="fdz-cmps-menu-surveys-super-survey" href="https://app.feedz.com.br/super-pesquisa">Super Pesquisa                </a>
+            </li>
+            
+
+            
+        </ul>
+    </li>
+        
+        <li class="dropdown fdz-menu-nav-dashboard fdz-menu-nav-resumo fdz-menu-nav-humor fdz-menu-nav-turnover fdz-menu-nav-plano-de-desenvolvimento-dashboard fdz-menu-nav-feedbacks-historico fdz-menu-nav-gestao-1on1 fdz-menu-nav-feedbacks-gestao" id="fdz-main-menu-management">
+        <a tabindex="1" id="fdz-cmps-menu-management" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Gestão<span class="caret"></span>
+        </a>
+
+        <ul class="fdz-menu-dropdown dropdown-menu">
+                        <li class="hidden-xs">
+                <a tabindex="1" id="fdz-cmps-menu-management-dashboard" href="https://app.feedz.com.br/dashboard">Dashboard</a>
+            </li>
+            
+                        <li>
+                <a tabindex="1" href="https://app.feedz.com.br/dashboard/engajamento"> Painel de Engajamento </a>
+            </li>
+            
+            
+            
+                        <li>
+                <a tabindex="1" id="fdz-cmps-menu-management-mood" href="https://app.feedz.com.br/humor">Humor</a>
+            </li>
+            
+                        <li>
+                <a tabindex="1" id="fdz-cmps-menu-management-activities-resume" href="https://app.feedz.com.br/resumo">Resumo de Atividades</a>
+            </li>
+            
+                        <li>
+                <a tabindex="1" id="fdz-cmps-menu-management-panel" href="https://app.feedz.com.br/gestao/painel">
+                    Painel de Gestão                    <span id="new-tag-management-panel" class="menu-tag">
+                        Novidade
+                    </span>
+                </a>
+            </li>
+            
+                            <li class="hidden-xs">
+                    <a tabindex="1" href="https://app.feedz.com.br/gestao/1on1"> Histórico de 1:1 </a>
+                </li>
+            
+                                    <li>
+                <a tabindex="1" href="https://app.feedz.com.br/feedbacks/historico">Histórico de Feedback</a>
+            </li>
+            
+            <li>
+                <a tabindex="1" id="fdz-cmps-menu-management-feedback" href="https://app.feedz.com.br/feedbacks/gestao">Gestão de Feedbacks</a>
+            </li>
+            
+                        <li>
+                <a tabindex="1" href="https://app.feedz.com.br/resumo/diversidade">Diversidade</a>
+            </li>
+            
+                        <li>
+                <a tabindex="1" href="https://app.feedz.com.br/turnover">Turnover</a>
+            </li>
+                    </ul>
+    </li>
+    
+        <li class="dropdown fdz-menu-nav-desempenho" id="fdz-main-menu-appraisal">
+        <a tabindex="1" id="fdz-cmps-menu-perfomance" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Desempenho <span class="caret"></span></a>
+
+        <ul class="fdz-menu-dropdown dropdown-menu">
+            <li>
+                <a tabindex="1" href="https://app.feedz.com.br/avaliacao-desempenho/lista">Minhas avaliações</a>
+            </li>
+
+                                                                    </ul>
+    </li>
+    
+        <li class="dropdown fdz-menu-nav-pessoas" id="fdz-main-menu-pessoas">
+    <a tabindex="1" id="fdz-cmps-menu-pessoas" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Pessoas <span class="caret"></span></a>
+        <ul class="fdz-menu-dropdown dropdown-menu">
+                                        
+                        <li>
+                <a tabindex="1" href="https://app.feedz.com.br/empresa/colaboradores">Colaboradores</a>
+            </li>
+            
+            
+                                            <li>
+                    <a tabindex="1" href="https://app.feedz.com.br/empresa/desligamento-de-colaboradores">Desligamentos</a>
+                </li>
+                                                                <li>
+                    <a tabindex="1" href="https://app.feedz.com.br/empresa/relatorios">Relatórios</a>
+                </li>
+                                                                                                                              
+                
+                            
+                        <li>
+                <a tabindex="1" href="https://app.feedz.com.br/empresa/colaboradoresdes">Desengajados</a>
+            </li>
+                    </ul>
+    </li>
+    
+            <li class="fdz-menu-nav-empresa" id="fdz-main-menu-configuration">
+                <a tabindex="1" href="https://app.feedz.com.br/empresa/configuracoes"><span class="fdz-sidebar-icon icon-sidebar-configuracao">&nbsp;</span>
+            <span class="fdz-sidebar-txt">Configurações            </span>
+        </a>
+                </li>
+    </ul>
+    </div>
+
+<div id="fdz-side-menu-overlay" onclick="closeFdzSideMenu()" style="width: 0px;"></div>
+
+<style>
+    .fdz-side-menu-hamburger {
+        padding: 8px;
+        border-radius: 8px;
+        border: solid 2px #C2DAF2 !important;
+    }
+    .fdz-side-menu-hamburger--format {
+        padding: 4px !important;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .fdz-side-menu-hamburger--format .navbar-toggler-icon {
+        height: 16px !important;
+        width: 16px !important;
+        margin-bottom: 8px;
+    }
+
+    .icon-bar {
+        width: 12px !important;
+        height: 1px !important;
+    }
+
+    @media (max-width: 500px) and (min-width: 375px) {
+        .fdz-side-menu-hamburger {
+            margin: 8px 8px 8px 0 !important;
+        }
+    }
+</style>
+<script>
+    const FDZ_MOBILE_MENU_WIDTH_BREAKPOINT = 767;
+
+    function isFdzMobileMenuViewport() {
+        return window.innerWidth <= FDZ_MOBILE_MENU_WIDTH_BREAKPOINT;
+    }
+
+    function openFdzSideMenu() {
+        document.getElementById("fdz-side-menu").style.width = "250px";
+        document.getElementById("fdz-side-menu-overlay").style.width = "100%";
+    }
+
+    function closeFdzSideMenu() {
+        document.getElementById("fdz-side-menu").style.width = "0";
+        document.getElementById("fdz-side-menu-overlay").style.width = "0px";
+    }
+
+    function syncFdzSideMenuViewport() {
+        if (!isFdzMobileMenuViewport()) {
+            closeFdzSideMenu();
+        }
+    }
+
+    window.addEventListener('resize', syncFdzSideMenuViewport);
+    syncFdzSideMenuViewport();
+</script>
+        </div>
+
+        <div id="fdz-menu-box-logo" class="hidden-xs">
+          <a tabindex="1" class="navbar-brand navbar-brand-top" href="https://app.feedz.com.br/inicio">
+                        <img src="./assets/048808b3861eedf15628daffe9f9d477.png" alt="SALC GROUP - logo">
+                      </a>
+        </div>
+        
+        <div class="container-header-menu-lateral">
+          <div class="container-header-campanhas">
+              
+                
+              <!--  -->
+          </div>
+          <div id="fdz-menu-box-shortcuts">
+            <ul class="fdz-menu-options" id="fdz-main-menu-noticeboard">
+              <li class="nav-item nav-top-item">
+                <a class="nav-link nav-link-top" tabindex="1" target="_blank" href="https://ajuda.feedz.com.br/" aria-label="Central de ajuda">
+                  <i class="fa-light fa-circle-question menu-icon menu-icon-top" style="font-size: 18px; color: #2A3B4C;"></i>
+                </a>
+              </li>
+  
+                            <li class="nav-item nav-top-item">
+                <a class="nav-link nav-link-top" tabindex="1" href="https://app.feedz.com.br/comunicados" aria-label="Comunicados">
+                  <i class="fa-light fa-bullhorn menu-icon menu-icon-top" style="font-size: 18px; color: #2A3B4C;"></i>
+                </a>
+              </li>
+                
+                
+              <li class="nav-item dropdown fdz-menu-notifications nav-top-item" id="fdz-main-menu-notifications">
+                                    <a id="fdz-main-menu-notifications-button" class="nav-notification-drop" tabindex="1" href="https://app.feedz.com.br/inicio#" role="button" aria-haspopup="true" aria-label="Notificações" aria-expanded="false">
+                        <i class="fa-light fa-bell menu-icon menu-icon-top" style="color: #2A3B4C"></i>
+                    </a>
+                  
+                <div id="fdz-main-menu-notifications-dropdown" style="display: none; position: absolute;background: #fff;border: 1px solid #c3c3c3;left: -228px; padding-bottom: 0px !important; padding-top: 0px !important; z-index: 1000;">
+                  <div style=" display: flex; flex-direction: column-reverse;">
+                    <ul aria-labelledby="fdz-main-menu-notifications-button" aria-roledescription="Atenção, usuários de leitores de tela: Use as teclas de setas para cima e para baixo para navegar entre os itens da lista e teclas de Tab e Shift Tab para sair da listagem." id="fdz-main-menu-notifications-dropdown-list" style="min-width: 300px; max-height: 285px; min-height: 100px; overflow-x: hidden; overflow-y: scroll; padding: 0; width: 384px;">
+                                          </ul>
+  
+                                          <div class="empty">Você ainda não possui notificações</div>
+                      
+                    <div style="width: 100%">
+                      <div class="border-bottom" style="
+                          display: flex;
+                          flex-direction: row;
+                          justify-content: space-between;
+                          align-items: center;
+                          height: 48px;
+                          padding: 8px;
+                        ">
+                        <h6 style="
+                            font-size: 16px;
+                            font-weight: 600;
+                            line-height: 22.4px;
+                            text-align: left;
+                          ">
+                        Notificações                        </h6>
+                        <button tabindex="1" class="ckt_button-tertiary-sm-light" id="fdz-main-menu-notification-mark-as-read" aria-live="polite">
+                          Marcar todas como lidas                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+  
+          <div id="fdz-menu-box-profile-menu" class="dropdown">
+  <button tabindex="1" class="btn btn-default dropdown-toggle fdz-menu-profile-info" id="dropdownMenuMobile" aria-haspopup="true" aria-expanded="false" aria-label="Perfil ALEXANDRE CASTRO P DA SILVA - empresa SALC GROUP">
+    <img class="avatar-30 rounded" src="./assets/user.png">
+    <div class="hidden-xs">
+      <span class="profile-name-top">ALEXANDRE</span>
+      <span class="company company-top">SALC</span>
+    </div>
+
+    <span class="caret" style="color: #2A3B4C;"></span>
+  </button>
+  <ul id="dropdownMenuMobileList" class="fdz-menu-info-dropdown" aria-labelledby="dropdownMenuMobile" style="display: none;" aria-roledescription="Atenção, usuários de leitores de tela: Use as teclas de setas para cima e para baixo para navegar entre os itens da lista e teclas de Tab e Shift Tab para sair da listagem.">
+    <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/perfil"><i class="fa fa-user menu-icon"></i>Meu perfil</a>
+    </li>
+    
+                <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/empresa/perfil"><i class="fa fa-cog menu-icon"></i>Configurações da empresa</a>
+    </li>
+    
+        <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/organograma"><i class="fa fa-cubes menu-icon"></i>Organograma</a>
+    </li>
+    
+        <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" id="id-activate-support" href="https://app.feedz.com.br/inicio#" role="button">
+            <i class="glyphicon glyphicon-headphones menu-icon"></i>Liberar Suporte                    </a>
+    </li>
+    
+
+        <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/colaboradores"><i class="fa fa-users menu-icon"></i>Colaboradores</a>
+    </li>
+    
+        <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/comunicados"><i class="fa fa-bullhorn menu-icon"></i>Comunicados</a>
+    </li>
+        
+        <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/auditoria"><i class="fa fa-search menu-icon"></i>Auditoria do Sistema</a>
+    </li>
+    
+        <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://docs.google.com/forms/d/e/1FAIpQLSczGrOrbpqjy0VLSHm1x9eK7YEBZeD5PK3DSWOtplbOHrRujA/viewform?usp=publish-editor" target="_blank"><i class="fa fa-lightbulb-o menu-icon"></i>Voz do cliente</a>
+    </li>
+    
+    <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://www.feedz.com.br/politica-de-privacidade" target="_blank">
+            <i class="fa-light fa-book menu-icon"></i>Politica de Privacidade</a>
+    </li>
+
+                
+    
+        
+        <li role="separator" class="divider"></li>
+    <li class="dropdown-header fdz-menu-info-dropdown-header">Férias</li>
+    <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/minhas-ferias"><i class="fa-light fa-island-tropical menu-icon"></i>Minhas férias</a>
+    </li>
+    <li class="hide-on-small-screen">
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/calendario-ferias"><i class="fa-light fa-calendar-days menu-icon"></i>Calendário de Férias e Recesso</a>
+    </li>
+    
+    
+    
+
+    <li role="separator" class="divider"></li>
+
+    <li>
+        <a class="fdz-menu-info-dropdown-item" tabindex="-1" href="https://app.feedz.com.br/autenticacao/logout" onclick="signOut();">
+            <i class="fa fa-sign-out menu-icon"></i>Sair        </a>
+    </li>
+  </ul>
+</div>
+
+<style>
+    .profile-name-top {
+        color: #2A3B4C !important;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    .company-top {
+        color: #3F5973 !important;
+        font-size: 12px !important;
+    }
+
+    .fdz-menu-profile-info {
+        outline: none;
+        border: solid 2px #fff !important;
+        border-radius: 16px;
+        height: 48px;
+        margin: 0 0 0 16px;
+    }
+
+    .fdz-menu-profile-info:hover{
+        background-color: #EFF3F6 !important;
+    }
+
+    .fdz-menu-profile-info:focus {
+        border: solid 2px #0C6DFF !important;
+        background-color: #fff !important;
+    }
+
+    @media (max-width: 374px) {
+        .fdz-menu-profile-info {
+            margin: 0 !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        checkPersonalAreaVisibility();
+    });
+
+    const checkPersonalAreaVisibility = () => {
+        const personalItems = document.querySelectorAll('.personalDataItem');
+        let countItens = 0;
+        personalItems.forEach(item => {
+            if (item.style.display === "block") {
+                countItens++;
+            }
+        });
+        if (countItens === 0) {
+            const headerParts = document.querySelectorAll('.personalAreaHeader');
+            headerParts.forEach(item => {
+                item.style.display = "none";
+            });
+        }
+    };
+
+  const dropdownMenuProfileList = document.getElementById('dropdownMenuMobileList');
+  const dropdownMenuProfileButton = document.getElementById('dropdownMenuMobile');
+
+  function resizeDropdownMenuProfile () {
+    if (window.innerHeight - 30 < dropdownMenuProfileList.scrollHeight) {
+      dropdownMenuProfileList.style.maxHeight = '50vh';
+      dropdownMenuProfileList.style.overflowY = 'scroll';
+    } else {
+      dropdownMenuProfileList.style.maxHeight = 'none';
+      dropdownMenuProfileList.style.overflowY = 'unset';
+    }
+  }
+
+  function openDropdownMenuProfile () {
+      dropdownMenuProfileList.style.display = 'block';
+      dropdownMenuProfileButton.ariaExpanded = true;
+      resizeDropdownMenuProfile();
+  }
+
+  function closeDropdownMenuProfile () {
+      dropdownMenuProfileList.style.display = 'none';
+      dropdownMenuProfileButton.ariaExpanded = false;
+  }
+
+  //ajustar proporcao do dropdown com base no tamanho da tela
+  window.addEventListener('resize', resizeDropdownMenuProfile);
+
+  //fechar dropdown de notificacoes ao clicar fora
+  window.addEventListener('click', function(e){
+    if (!dropdownMenuProfileButton.contains(e.target) && !dropdownMenuProfileList.contains(e.target)) {
+      closeDropdownMenuProfile();
+    }
+  });
+
+  //fechar dropdown ao interagir em outro elemento
+  window.addEventListener('keydown', function(e){
+    if (!dropdownMenuProfileButton.contains(e.target) && !dropdownMenuProfileList.contains(e.target)) {
+      closeDropdownMenuProfile();
+    }
+  });
+
+  //abrir dropdown de notificacoes ao clicar dentro
+  dropdownMenuProfileButton.addEventListener('click', (event) => {
+    if (dropdownMenuProfileList.style.display == 'block') {
+      closeDropdownMenuProfile();
+    }
+    else {
+      openDropdownMenuProfile();
+    }
+  });
+
+  //fechar dropdown de notificacoes com escape
+  dropdownMenuProfileButton.addEventListener('keydown', (event) => {
+    const firstFocusableElement = dropdownMenuProfileList.querySelectorAll('a')[0] ?? document.createElement('div');
+    if (event.key == 'Escape' || event.keyCode == 27) {
+      dropdownMenuProfileButton.focus();
+      closeDropdownMenuProfile();
+    }
+  });
+
+  //acessar dropdown pelo botao usando arrow/tab
+  dropdownMenuProfileButton.addEventListener('keydown', (event) => {
+    if (dropdownMenuProfileList.style.display == 'block') {
+      const firstFocusableElement = dropdownMenuProfileList.querySelectorAll('a')[0] ?? document.createElement('div');
+      const focusableContent = dropdownMenuProfileList.querySelectorAll('a');
+      const lastFocusableElement = focusableContent[focusableContent.length - 1] ?? document.createElement('div'); // get last element to be focused inside modal
+
+      if (event.key == 'ArrowDown' || event.keyCode == 40) {
+        firstFocusableElement.focus();
+      }
+      if (event.key == 'ArrowUp' || event.keyCode == 38) {
+        lastFocusableElement.focus();
+      }
+      let isTabPressed = event.key === 'Tab' || event.keyCode === 9;
+      if (isTabPressed && !event.shiftKey) {
+        event.preventDefault();
+        firstFocusableElement.focus();
+      }
+    }
+  });
+
+  //navegacao pelo dropdown de notificacoes com escape
+  dropdownMenuProfileList.addEventListener('keydown', (event) => {
+    if (event.key == 'Escape' || event.keyCode == 27) {
+      dropdownMenuProfileButton.focus();
+      closeDropdownMenuProfile();
+    }
+  });
+
+  //navegacao pela listagem de notificacoes com setas
+  dropdownMenuProfileList.addEventListener('keydown', (event) => {
+    const firstFocusableElement = dropdownMenuProfileList.querySelectorAll('a')[0] ?? document.createElement('div');
+    const focusableContent = dropdownMenuProfileList.querySelectorAll('a');
+    const lastFocusableElement = focusableContent[focusableContent.length - 1] ?? document.createElement('div'); // get last element to be focused inside modal
+    let key = 0;
+    focusableContent.forEach((object, index) => {
+      if (object === document.activeElement) {
+        key = index;
+        return;
+      }
+    });
+    if (event.key == 'ArrowDown' || event.keyCode == 40) {
+      if (key == focusableContent.length -1) return;
+      focusableContent[key + 1].focus();
+    }
+    if (event.key == 'ArrowUp' || event.keyCode == 38) {
+      if (key == 0) return;
+      focusableContent[key - 1].focus();
+    }
+  });
+</script>
+
+<style>
+.fdz-menu-info-dropdown {
+    position: absolute;
+    top: 100%;
+    z-index: 1000;
+    display: none;
+    float: left;
+    min-width: 160px;
+    padding: 5px 0;
+    margin: 2px 0 0;
+    font-size: 14px;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 4px;
+    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+}
+.fdz-menu-info-dropdown .divider {
+    height: 1px;
+    margin: 9px 0;
+    overflow: hidden;
+    background-color: #e5e5e5;
+}
+.fdz-menu-info-dropdown-item {
+    display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: 400;
+    line-height: 1.42857143;
+    color: #333;
+    white-space: nowrap;
+    text-decoration: none;
+}
+.fdz-menu-info-dropdown-item:focus, .fdz-menu-info-dropdown-item:hover {
+    color: #262626;
+    text-decoration: none;
+    background-color: #f5f5f5;
+}
+.fdz-menu-info-dropdown-header {
+    color: #777;
+    font-size: 12px;
+    padding: 3px 20px;
+}
+</style>
+        </div>
+
+    </div>
+  </div></nav>
+
+  </header>
+
+<style>
+  html.fdz-touchscreen-menu #fdz-menu-box-side-menu {
+    display: inline-flex !important;
+    align-items: center;
+  }
+
+  html.fdz-touchscreen-menu #fdz-menu-box-logo {
+    display: none !important;
+  }
+
+  html.fdz-touchscreen-menu #fdz-menu-box-side-menu .fdz-side-menu-hamburger {
+    display: inline-block !important;
+    margin: 0 !important;
+  }
+
+    .nav-link-top,
+    .nav-notification-drop {
+        display: inline-block;
+        width: 48px;
+        height: 48px;
+        vertical-align: middle;
+        margin: 0;
+        border: solid 2px #fff !important;
+        border-radius: 16px;
+    }
+
+    .nav-link-top:focus,
+    .nav-notification-drop:focus {
+        outline: none;
+        border: solid 2px #0C6DFF !important;
+        border-radius: 16px;
+    }
+
+    .nav-link-top:hover,
+    .nav-notification-drop:hover {
+        background-color: #EFF3F6 !important;
+    }
+
+    .nav-top-item {
+        width: fit-content !important;
+        text-align: center;
+        margin: 0 0 0 8px;
+        line-height: 17px;
+    }
+
+    .menu-icon-top {
+        display: inline-block;
+        margin: 0 !important;
+        line-height: 44px;
+    }
+
+
+    .navbar-default-top {
+        border-width: 0;
+    }
+
+    #fdz-main-menu-notifications-badge {
+        right: unset;
+        margin: 0 !important;
+        background-color: #DA2121 !important;
+    }
+
+    .container-header-sidebar {
+      width: 100%;
+    }
+    .container-header-sidebar--padding {
+      padding: 8px 16px;
+    }
+
+    .fdz-menu-options {
+        line-height: unset !important;
+    }
+
+    .navbar-brand-top {
+        height: 46.5px !important;
+        border: solid 2px #fff !important;
+        border-radius: 8px !important;
+        outline: none;
+    }
+
+    .navbar-brand-top:focus {
+        outline: none;
+        height: 46.5px !important;
+        border: solid 2px #0C6DFF !important;
+    }
+
+    #fdz-menu-box-logo {
+        height: fit-content !important;
+    }
+
+    @media (max-width: 767px) {
+        #fdz-menu-box-side-menu {
+            line-height: unset !important;
+        }
+
+        .container-header-sidebar {
+            padding: 8px;
+        }
+    }
+
+    @media (max-width: 374px) {
+        .nav-top-item {
+            margin: 0 !important;
+        }
+        .fdz-menu-top-box {
+            justify-content: space-between;
+        }
+    }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var bar = document.getElementById('personified_bar');
+    var footer = document.querySelector('.fdz-cockatool-form-footer');
+    var footerEngagement = document.querySelector('.ckt-form-footer');
+
+    if (bar && (footer || footerEngagement)) {
+        if (footer) {
+            footer.classList.add('adjusted');
+        }
+        if (footerEngagement) {
+            footerEngagement.classList.add('adjusted');
+        }
+    }
+  });
+
+  const notificationsDropdown = document.getElementById('fdz-main-menu-notifications-dropdown');
+  const notificationsDropdownList = document.getElementById('fdz-main-menu-notifications-dropdown-list');
+  const notificationsButton = document.getElementById('fdz-main-menu-notifications-button');
+
+  function resizeDropdownNotification () {
+    if (window.innerHeight - 30 < notificationsDropdownList.scrollHeight) {
+      notificationsDropdownList.style.maxHeight = '50vh';
+    } else {
+      notificationsDropdownList.style.maxHeight = '285px';
+    }
+  }
+
+  function openDropdownNotification () {
+    notificationsDropdown.style.display = 'block';
+    notificationsButton.ariaExpanded = true;
+      resizeDropdownNotification();
+  }
+
+  function closeDropdownNotification () {
+    notificationsDropdown.style.display = 'none';
+    notificationsButton.ariaExpanded = false;
+  }
+
+  //ajustar proporcao do dropdown com base no tamanho da tela
+  window.addEventListener('resize', resizeDropdownNotification);
+
+  //fechar dropdown de notificacoes ao clicar fora
+  window.addEventListener('click', function(e){
+    if (!notificationsButton.contains(e.target) && !notificationsDropdown.contains(e.target)) {
+      closeDropdownNotification();
+    }
+  });
+
+  //fechar dropdown ao interagir em outro elemento
+  window.addEventListener('keydown', function(e){
+    if (!notificationsButton.contains(e.target) && !notificationsDropdown.contains(e.target)) {
+      closeDropdownNotification();
+    }
+  });
+
+  //abrir dropdown de notificacoes ao clicar dentro
+  notificationsButton.addEventListener('click', (event) => {
+    if (notificationsDropdown.style.display == 'block') {
+      closeDropdownNotification();
+    }
+    else {
+      openDropdownNotification();
+    }
+  });
+
+  //fechar dropdown de notificacoes com escape
+  notificationsButton.addEventListener('keydown', (event) => {
+    const firstFocusableElement = notificationsDropdownList.querySelectorAll('a')[0] ?? document.createElement('div');
+    if (event.key == 'Escape' || event.keyCode == 27) {
+      closeDropdownNotification();
+      notificationsButton.focus();
+    }
+  });
+
+  //acessar dropdown pelo botao usando arrow/tab
+  notificationsButton.addEventListener('keydown', (event) => {
+    if (notificationsDropdown.style.display == 'block') {
+      const firstFocusableElement = notificationsDropdownList.querySelectorAll('a')[0] ?? document.createElement('div');
+      const focusableContent = notificationsDropdownList.querySelectorAll('a');
+      const lastFocusableElement = focusableContent[focusableContent.length - 1] ?? document.createElement('div'); // get last element to be focused inside modal
+
+      if (event.key == 'ArrowDown' || event.keyCode == 40) {
+        firstFocusableElement.focus();
+      }
+      if (event.key == 'ArrowUp' || event.keyCode == 38) {
+        lastFocusableElement.focus();
+      }
+      let isTabPressed = event.key === 'Tab' || event.keyCode === 9;
+      if (isTabPressed && !event.shiftKey) {
+        event.preventDefault();
+        firstFocusableElement.focus();
+      }
+    }
+  });
+
+  //navegacao pelo dropdown de notificacoes com tab/shift+tab/escape
+  notificationsDropdown.addEventListener('keydown', (event) => {
+    const focusableElements = 'button:not([tabindex="-1"]), [href]:not([tabindex="-1"]), input:not([tabindex="-1"]), select:not([tabindex="-1"]), textarea:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
+    const firstFocusableElement = notificationsDropdown.querySelectorAll(focusableElements)[0] ?? document.createElement('div');
+    const focusableContent = notificationsDropdown.querySelectorAll(focusableElements);
+    const lastFocusableElement = focusableContent[focusableContent.length - 1] ?? document.createElement('div'); // get last element to be focused inside modal
+
+    let isTabPressed = event.key === 'Tab' || event.keyCode === 9;
+    if (isTabPressed && event.shiftKey) {
+      event.preventDefault();
+      notificationsButton.focus();
+      closeDropdownNotification();
+    }
+    if (isTabPressed && !event.shiftKey) {
+      if (lastFocusableElement == document.activeElement) {
+        closeDropdownNotification();
+      }
+    }
+    if (event.key == 'Escape' || event.keyCode == 27) {
+      notificationsButton.focus();
+      closeDropdownNotification();
+    }
+  });
+
+  //navegacao pela listagem de notificacoes com setas
+  notificationsDropdownList.addEventListener('keydown', (event) => {
+    const firstFocusableElement = notificationsDropdownList.querySelectorAll('a')[0] ?? document.createElement('div');
+    const focusableContent = notificationsDropdownList.querySelectorAll('a');
+    const lastFocusableElement = focusableContent[focusableContent.length - 1] ?? document.createElement('div'); // get last element to be focused inside modal
+    let key = 0;
+    focusableContent.forEach((object, index) => {
+      if (object === document.activeElement) {
+        key = index;
+        return;
+      }
+    });
+
+    if (event.key == 'ArrowDown' || event.keyCode == 40) {
+      if (key == focusableContent.length -1) return;
+      focusableContent[key + 1].focus();
+    }
+    if (event.key == 'ArrowUp' || event.keyCode == 38) {
+      if (key == 0) return;
+      focusableContent[key - 1].focus();
+    }
+  });
+
+  //tratativa de requests de Marcar todas como lidas / marcar como visualizadas
+  function enterRequestMarkAsVisualized(event) {
+    if (event.key == 'Enter' || event.keyCode == 13) {
+      requestMarkAsVisualized();
+    }
+  }
+
+  function requestMarkAsVisualized() {
+    if(document.getElementsByClassName('notification').length <= 0) {
+      return false;
+    }
+    if (!document.getElementById('fdz-main-menu-notifications-badge')) {
+      return false;
+    }
+    firstId = document.getElementsByClassName('notification')[0].attributes.getNamedItem('data-id').value;
+
+    $.ajax({
+      type: 'PUT',
+      url: '/notification/marcar-como-visualizadas',
+      data: { id: firstId },
+      success: function (data) {
+        document.getElementById('fdz-main-menu-notifications-badge').remove();
+        notificationsButton.removeEventListener('click', requestMarkAsVisualized);
+        notificationsButton.removeEventListener('keydown', enterRequestMarkAsVisualized);
+      },
+      error: function (data) {
+        swal("Oops!", "Falha ao limpar notificações", "error");
+      }
+    });
+  }
+
+  function requestMarkAsRead() {
+    if(document.getElementsByClassName('notification').length <= 0) {
+      return false;
+    }
+    firstId = document.getElementsByClassName('notification')[0].attributes.getNamedItem('data-id').value;
+    $.ajax({
+      type: 'PUT',
+      url: '/notification/marcar-como-lidas',
+      data: { id: firstId },
+      success: function (data) {
+        document.getElementById('fdz-main-menu-notification-mark-as-read').innerText = data.message;
+        document.getElementById('fdz-main-menu-notification-mark-as-read').removeEventListener("click", requestMarkAsRead)
+      },
+      error: function (data) {
+        swal("Oops!", "Falha ao limpar notificações", "error");
+      }
+    });
+  }
+
+  document.getElementById('fdz-main-menu-notification-mark-as-read').addEventListener("click", requestMarkAsRead);
+  notificationsButton.addEventListener('click', requestMarkAsVisualized);
+  notificationsButton.addEventListener('keydown', enterRequestMarkAsVisualized);
+</script>
+
+	<style>
+		#fdz-sidebar-menu.new {
+			display: none;
+			border-right: 1px solid rgba(194, 197, 204, 0.7);
+		}
+
+		#fdz-sidebar-menu.new.toggled-scroll {
+			border-right: 0;
+		}
+
+		@media (min-width: 768px) {
+			#fdz-sidebar-menu.new {
+				display: block !important;
+			}
+		}
+	</style>
+
+  	<sidebar id="fdz-sidebar-menu" class="hidden-xs new">
+		<div id="fdz-btn-toggle-new" role="button" tabindex="0" aria-label="Retrair menu" data-fdz-new-toggle-bound="true">
+      <div class="fdz-btn-toggle fdz-tooltip">&nbsp;
+        <div class="fdz-tooltip-content fdz-tooltip-right" style="width:130px;">
+          <p class="fdz-paragraph fdz-text-center fdz-txt-bold fdz-txt-white">Retrair menu</p>
+        </div>
+      </div>
+    </div>
+	        
+
+<div class="fdz-menu-sidebar-scroll" id="fdz-menu-sidebar-scroll">
+  <div class="sidebar_scroll_content">
+    <nav id="sidebar_scroll_nav">
+      <ul>
+                    <li class="fdz-menu-nav-inicio fdz-menu-active-item" id="fdz-main-menu-home">
+              <a aria-label="Início" tabindex="1" href="https://app.feedz.com.br/inicio">
+                <span class="fdz-sidebar-icon icon-sidebar-home">&nbsp;</span>
+                <span class="fdz-sidebar-txt">
+                    Início
+                    <span class="sr-only">(current)</span>
+                </span>
+              </a>
+          </li>
+          
+                    <li class="fdz-menu-nav-celebracoes" id="fdz-main-menu-celebrations">
+              <a aria-label="Celebrações" tabindex="1" id="fdz-cmps-menu-celebration" href="https://app.feedz.com.br/celebracoes">
+                <span class="fdz-sidebar-icon icon-sidebar-celebracoes">&nbsp;</span>
+                <span class="fdz-sidebar-txt">Celebrações</span>
+              </a>
+          </li>
+          
+
+                    <li class="fdz-menu-nav-feedbacks fdz-menu-nav-1on1 fdz-menu-nav-plano" id="fdz-main-menu-development">
+              <a aria-label="Desenvolvimento" tabindex="1" id="fdz-cmps-menu-development" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="fdz-sidebar-icon icon-sidebar-desenvolvimento">&nbsp;</span>
+                  <span class="fdz-sidebar-txt">
+                      Desenvolvimento
+                      <span class="caret-sidebar"></span>
+                  </span>
+              </a>
+              <ul class="dropdown-list" style="display: none; visibility: hidden; transform: none;">
+                                                        <li>
+                        <a aria-label="Enviar Feedback" tabindex="1" id="fdz-cmps-menu-development-send-feedback" href="https://app.feedz.com.br/feedbacks/novo">
+                            Enviar Feedback
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a aria-label="Feedbacks" tabindex="1" id="fdz-cmps-menu-development-feedback" href="https://app.feedz.com.br/feedbacks">Feedbacks</a>
+                    </li>
+                
+                
+                                    <li>
+                        <a aria-label="Meus Planos de Desenvolvimento" tabindex="1" href="https://app.feedz.com.br/trilhas">Meus Planos de Desenvolvimento
+
+                                                        <span id="ai-tag_my_plans" class="menu-tag">
+                                <i class="fa-regular fa-sparkles"></i>
+                                IA
+                            </span>
+                            
+                        </a>
+                    </li>
+                
+                                    <li>
+                        <a aria-label="Reuniões 1:1" tabindex="1" id="fdz-cmps-menu-development-1on1-meetings" href="https://app.feedz.com.br/1on1">Reuniões 1:1</a>
+                    </li>
+                              </ul>
+          </li>
+          
+          
+            
+        
+          
+          
+          
+            
+            
+            <li class="fdz-menu-nav-enps fdz-menu-nav-pesquisa fdz-menu-nav-super" id="fdz-main-menu-surveys">
+                <a aria-label="Pesquisas" tabindex="1" id="fdz-cmps-menu-surveys" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">
+                    <span class="fdz-sidebar-icon icon-sidebar-pesquisa">&nbsp;</span>
+                    <span class="fdz-sidebar-txt">Pesquisas <span class="caret-sidebar"></span></span>
+                </a>
+
+                <ul class="dropdown-list">
+                                        <li>
+                        <a aria-label="Pesquisa de Satisfação" tabindex="1" href="https://app.feedz.com.br/enps">Pesquisa de Satisfação</a>
+                    </li>
+                    
+                                        <li>
+                        <a aria-label="Pesquisa Rápida" tabindex="1" id="fdz-cmps-menu-surveys-fast-survey" href="https://app.feedz.com.br/pesquisa-rapida">Pesquisa Rápida</a>
+                    </li>
+                    
+                                        <li>
+                        <a aria-label="Super Pesquisa" tabindex="1" id="fdz-cmps-menu-surveys-super-survey" href="https://app.feedz.com.br/super-pesquisa">Super Pesquisa</a>
+                    </li>
+                    
+                
+                    
+                    
+
+                    
+                    
+                </ul>
+
+            </li>
+                        
+              <li class="fdz-menu-nav-dashboard fdz-menu-nav-resumo fdz-menu-nav-humor fdz-menu-nav-turnover fdz-menu-nav-plano-de-desenvolvimento-dashboard fdz-menu-nav-feedbacks-historico fdz-menu-nav-gestao-1on1 fdz-menu-nav-feedbacks-gestao fdz-menu-nav-trilhas-gestao-pdi fdz-menu-nav-resumo-diversidade" id="fdz-main-menu-management">
+              <a aria-label="Gestão" tabindex="1" id="fdz-cmps-menu-management" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false"><span class="fdz-sidebar-icon icon-sidebar-gestao">&nbsp;</span>
+              <span class="fdz-sidebar-txt">Gestão<span class="caret-sidebar"></span></span>
+              </a>
+
+              <ul class="dropdown-list">
+                
+                                    <li class="hidden-xs">
+                  <a aria-label="Dashboard" tabindex="1" id="fdz-cmps-menu-management-dashboard" href="https://app.feedz.com.br/dashboard">Dashboard</a>
+                  </li>
+                  
+                                    <li>
+                  <a aria-label="Painel de Engajamento" tabindex="1" href="https://app.feedz.com.br/dashboard/engajamento">Painel de Engajamento</a>
+                  </li>
+                  
+                  
+                
+                                    <li>
+                    <a aria-label="Humor" tabindex="1" id="fdz-cmps-menu-management-mood" href="https://app.feedz.com.br/humor">Humor</a>
+                  </li>
+                  
+                                    <li>
+                    <a aria-label="Resumo de Atividades" tabindex="1" id="fdz-cmps-menu-management-activities-resume" href="https://app.feedz.com.br/resumo">Resumo de Atividades</a>
+                  </li>
+                  
+                    
+                                                        
+                                                                            
+                                    <li>
+                    <a aria-label="Diversidade" tabindex="1" href="https://app.feedz.com.br/resumo/diversidade">Diversidade</a>
+                  </li>
+                  
+                                    <li>
+                    <a aria-label="Turnover" tabindex="1" href="https://app.feedz.com.br/turnover">Turnover</a>
+                  </li>
+                                </ul>
+          </li>
+          
+          
+                    <li class="fdz-menu-nav-desempenho fdz-menu-nav-avaliacao-desempenho fdz-menu-nav-avaliacao-desempenho-lista fdz-menu-nav-sucessao" id="fdz-main-menu-appraisal">
+              <a aria-label="Desempenho" tabindex="1" id="fdz-cmps-menu-perfomance" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="fdz-sidebar-icon icon-sidebar-desempenho">&nbsp;</span>
+                  <span class="fdz-sidebar-txt">Desempenho <span class="caret-sidebar"></span>
+                  </span>
+              </a>
+
+              <ul class="dropdown-list" style="display: none; visibility: hidden; transform: none;">
+                  <li>
+                    <a aria-label="Minhas avaliações" tabindex="1" href="https://app.feedz.com.br/avaliacao-desempenho/lista">Minhas avaliações</a>
+                  </li>
+
+                                                                                                                          </ul>
+          </li>
+          
+          
+                      <li class="fdz-menu-nav-ats" id="fdz-main-menu-ats">
+                <a aria-label="Recrutamento e Seleção" tabindex="1" href="https://app.feedz.com.br/totvs-rh-atracao-de-talentos" style="display: flex; align-items: center;"><span class="fdz-sidebar-icon icon-sidebar-ats">&nbsp;</span>
+                    <span class="fdz-sidebar-txt" style="display: flex; align-items: center;">R&amp;S
+                        <span class="fdz-menu-item-risk-map-badge" style="background-color: #E3D9FF; color: #210A66; font-family: 'Open Sans', sans-serif; font-weight: 400; font-size: 12px; text-align: center; border-radius: 500px; padding: 0 8px; width: 76px; height: 24px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; margin-left: 8px;">Saiba mais</span>
+                    </span>
+                </a>
+            </li>
+          
+                    <li class="fdz-menu-nav-pessoas" id="fdz-main-menu-pessoas">
+              <a aria-label="Pessoas" tabindex="1" id="fdz-cmps-menu-pessoas" href="https://app.feedz.com.br/inicio#" class="dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="fdz-sidebar-icon icon-sidebar-pessoas">&nbsp;</span>
+                  <span class="fdz-sidebar-txt">Pessoas <span class="caret-sidebar"></span></span>
+              </a>
+              <ul class="dropdown-list submenu-personal_department submenu-personal">
+                                                    
+                                <li>
+                  <a aria-label="Colaboradores" tabindex="1" href="https://app.feedz.com.br/empresa/colaboradores">Colaboradores</a>
+                </li>
+                
+                
+                                                        <li class="hidden-xs">
+                        <a aria-label="Desligamentos" tabindex="1" href="https://app.feedz.com.br/empresa/desligamento-de-colaboradores">Desligamentos</a>
+                    </li>
+                                                                                <li class="hidden-xs">
+                        <a aria-label="Relatórios" tabindex="1" href="https://app.feedz.com.br/empresa/relatorios">Relatórios</a>
+                    </li>
+                                                                                                                                                                             
+                                    
+                                <li class="hidden-xs">
+                  <a aria-label="Desengajados" tabindex="1" href="https://app.feedz.com.br/empresa/colaboradoresdes">Desengajados</a>
+                </li>
+                
+                              </ul>
+          </li>
+          
+                    <li class="fdz-menu-nav-empresa" id="fdz-main-menu-configuration">
+                            <a aria-label="Configurações" tabindex="1" href="https://app.feedz.com.br/empresa/configuracoes"><span class="fdz-sidebar-icon icon-sidebar-configuracao">&nbsp;</span>
+                  <span class="fdz-sidebar-txt">Configurações
+                  </span>
+              </a>
+                        </li>
+          
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<style>
+    #sidebar_scroll_nav .fdz-menu-item-risk-map {
+        height: auto !important;
+        min-height: 56px;
+    }
+
+    #sidebar_scroll_nav .fdz-menu-item-risk-map > #fdz-cmps-menu-fake-door-mapeamento-riscos {
+        height: auto !important;
+        min-height: 56px;
+        white-space: normal !important;
+    }
+
+    #sidebar_scroll_nav .fdz-menu-item-risk-map-text {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        line-height: 16px;
+    }
+
+    #sidebar_scroll_nav .fdz-menu-item-risk-map-text > span {
+        white-space: nowrap;
+    }
+
+    #sidebar_scroll_nav .fdz-menu-item-risk-map-badge {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .menu-tag {
+        background-color: #E3D9FF;
+        color: #210A66;
+        border-radius: 500px;
+        padding: 4px 8px;
+        font-size: 12px;
+        height: 24px;
+        margin-left: 8px;
+        margin-top: -4px;
+        gap: 4px
+    }
+
+    .fdz-menu-nav-copiloto > a {
+        display: flex;
+        align-items: center;
+    }
+
+    .fdz-menu-nav-copiloto .fdz-sidebar-txt {
+        display: flex;
+        align-items: center;
+    }
+
+    .fdz-menu-nav-copiloto .menu-tag {
+        margin-top: 0;
+    }
+
+    @media (min-width: 768px) {
+        .dropdown-toggle::after {
+            display: none;
+        }
+    }
+</style>
+      </sidebar>
+
+  <main id="fdz-main-sidebar" tabindex="-1" class="">
+
+										
+		
+                            <div class="container-fluid-sidebar" id="container-sidebar">
+                <div class="index-panel" id="fdz-index-panel" data-v-app=""><h1 class="sr-only">Página inicial</h1><div class="col-md-12"><div class="row card alert text-center" style="padding: 0px; border: 0px;"><img id="featured-img" class="homepage-img" src="./assets/5aff7a5051d98a10b7d6081a253caa33.jpeg" alt="" aria-hidden="true"></div></div><div class="col-md-3 col-md-push-9"><div style="margin: 16px -5px 0px !important;"><div data-v-273f852c=""><div data-v-273f852c="" class="ckt_surface_body ckt-profile-card" aria-label="Informações deste perfil"><div data-v-273f852c="" class="ckt-content" data-testid="content"><div data-v-273f852c="" class="ckt_user_md-D1CBs2 ckt-header" data-testid="header"><div data-v-57a12f35="" data-testid="empty_avatar" class="empty-avatar md-avatar" aria-label="Imagem de avatar genérico. Nenhuma foto de perfil foi adicionada."><i data-v-57a12f35="" class="fa-solid fa-user"></i></div><div><span class="name-QOJyg1" data-testid="name">ALEXANDRE CASTRO P DA SILVA</span><span class="" data-testid="email"></span><span class="role-lsoWpt" data-testid="job_title" title="GER EXEC TECNOLOGIA">GER EXEC TECNOLOGIA</span><!----><!----><div class="slot-content-ffLKh3"></div></div></div><div data-v-477e4a23="" data-v-273f852c="" class="ckt-container ckt-has-link" data-testid="link-group"><div data-v-147d9c0b="" data-v-477e4a23="" class="card-header" style="text-align: left;"><div data-v-147d9c0b="" class="title-group"><div data-v-147d9c0b="" class="h6 font-weight-semibold title" data-testid="title"><div data-v-477e4a23="" class="ckt-card-header-title">Links úteis</div></div><div data-v-147d9c0b="" class="subtitle" data-testid="subtitle">Acesse links importantes rapidamente. O link abrirá em uma nova aba.</div></div><!----></div><div data-v-477e4a23="" class="ckt-link-group ckt-link-group-max-width" aria-label="5 links"><a data-v-477e4a23="" href="https://atendimento.grupohinode.com/" rel="noopener noreferrer external" target="_blank" class="ckt_button-tertiary-md-light ckt-button-max-width" style="text-decoration: none;"><div data-v-8072e737="" data-v-477e4a23="" class="ckt-tooltip ckt-tooltip-full-width" id="link-group-link-tooltip-0"><div data-v-8072e737="" class="ckt-tooltip-target"><div data-v-477e4a23="" class="ckt-button"><span data-v-477e4a23="" id="link-group-link-text-0" class="ckt-button-label ckt-button-label-max-width">Abertura de Chamados</span><i data-v-50023932="" data-v-477e4a23="" data-testid="icon" class="ckt-container fa-light fa-arrow-right ckt-size-sm fa-rotate-0 fa-pull-0"></i></div></div><div data-v-8072e737="" class="ckt-tooltiptext ckt-tooltiptext-left" style="display: block;"><span data-v-8072e737="">Abertura de Chamados</span></div></div></a><a data-v-477e4a23="" href="https://www.hinode.com.br/colaborador" rel="noopener noreferrer external" target="_blank" class="ckt_button-tertiary-md-light ckt-button-max-width" style="text-decoration: none;"><div data-v-8072e737="" data-v-477e4a23="" class="ckt-tooltip ckt-tooltip-full-width" id="link-group-link-tooltip-1"><div data-v-8072e737="" class="ckt-tooltip-target"><div data-v-477e4a23="" class="ckt-button"><span data-v-477e4a23="" id="link-group-link-text-1" class="ckt-button-label ckt-button-label-max-width">Lojinha do Colaborador</span><i data-v-50023932="" data-v-477e4a23="" data-testid="icon" class="ckt-container fa-light fa-arrow-right ckt-size-sm fa-rotate-0 fa-pull-0"></i></div></div><div data-v-8072e737="" class="ckt-tooltiptext ckt-tooltiptext-left" style="display: block;"><span data-v-8072e737="">Lojinha do Colaborador</span></div></div></a><a data-v-477e4a23="" href="https://drive.google.com/drive/folders/1VX3vVAOYItYUaie4_zQ2zz6qgJb-LImj?usp=sharing" rel="noopener noreferrer external" target="_blank" class="ckt_button-tertiary-md-light ckt-button-max-width" style="text-decoration: none;"><div data-v-8072e737="" data-v-477e4a23="" class="ckt-tooltip ckt-tooltip-full-width" id="link-group-link-tooltip-2"><div data-v-8072e737="" class="ckt-tooltip-target"><div data-v-477e4a23="" class="ckt-button"><span data-v-477e4a23="" id="link-group-link-text-2" class="ckt-button-label ckt-button-label-max-width">Políticas, Materiais Internos e Código de Ética</span><i data-v-50023932="" data-v-477e4a23="" data-testid="icon" class="ckt-container fa-light fa-arrow-right ckt-size-sm fa-rotate-0 fa-pull-0"></i></div></div><div data-v-8072e737="" class="ckt-tooltiptext ckt-tooltiptext-left" style="display: block;"><span data-v-8072e737="">Políticas, Materiais Internos e Código de Ética</span></div></div></a><a data-v-477e4a23="" href="https://qualitor.think.br.com/loginUsuario.php" rel="noopener noreferrer external" target="_blank" class="ckt_button-tertiary-md-light ckt-button-max-width" style="text-decoration: none;"><div data-v-8072e737="" data-v-477e4a23="" class="ckt-tooltip ckt-tooltip-full-width" id="link-group-link-tooltip-3"><div data-v-8072e737="" class="ckt-tooltip-target"><div data-v-477e4a23="" class="ckt-button"><span data-v-477e4a23="" id="link-group-link-text-3" class="ckt-button-label ckt-button-label-max-width">Qualitor</span><i data-v-50023932="" data-v-477e4a23="" data-testid="icon" class="ckt-container fa-light fa-arrow-right ckt-size-sm fa-rotate-0 fa-pull-0"></i></div></div><div data-v-8072e737="" class="ckt-tooltiptext ckt-tooltiptext-left" style="display: none;"><span data-v-8072e737="">Qualitor</span></div></div></a></div><button data-v-477e4a23="" class="ckt-show-more" data-testid="show_more_btn"><span data-v-477e4a23="" class="ckt-show-more-label">Mostrar mais links</span><i data-v-50023932="" data-v-477e4a23="" data-testid="icon" class="ckt-container fa-light fa-chevron-down ckt-size-sm fa-rotate-0 fa-pull-0"></i></button></div><!----></div></div></div></div></div><div class="col-md-9 col-md-pull-3"><section id="panel-home-alert-section"><h2 id="panel-home-alert-section-title" style="display: block !important; border: 0px !important; clip: rect(0px, 0px, 0px, 0px) !important; height: 1px !important; margin: -1px !important; overflow: hidden !important; padding: 0px !important; position: absolute !important; white-space: nowrap !important; width: 1px !important;" aria-description="seção com 1 itens"> Notificações </h2><div id="panel-home-alert-section-group-items"><!----><!----><div id="oneonone-home-alert" data-v-app=""><!----><!----></div></div></section><div id="fdz-mood-container" class="row card mood"><div class="col-md-12 text-center"><h2 class="panel-questions">Como você está se sentindo?</h2></div><form id="fdz-panel-form-mood" method="POST" action="https://app.feedz.com.br/humor/novo"><input type="hidden" name="csrf_name" value="csrf6ab1799618750"><input type="hidden" name="csrf_value" value="28b72bea93b4d4bd38a56b1badd2c297"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"><div class="mood-rating"><label class="radio-inline" title="Muito triste"><input class="fdz_radio_button input" type="radio" name="mood" required="" value="1"><img class="mood-select-image" tabindex="0" src="./assets/mood-1.png" alt="Muito triste" role="radio" aria-checked="false"></label><label class="radio-inline" title="Triste"><input class="fdz_radio_button input" type="radio" name="mood" value="2"><img class="mood-select-image" tabindex="0" src="./assets/mood-2.png" alt="Triste" role="radio" aria-checked="false"></label><label class="radio-inline" title="Neutro"><input class="fdz_radio_button input" type="radio" name="mood" value="3"><img class="mood-select-image" tabindex="0" src="./assets/mood-3.png" alt="Neutro" role="radio" aria-checked="false"></label><label class="radio-inline" title="Feliz"><input class="fdz_radio_button input" type="radio" name="mood" value="4"><img class="mood-select-image" tabindex="0" src="./assets/mood-4.png" alt="Feliz" role="radio" aria-checked="false"></label><label class="radio-inline" title="Muito feliz"><input class="fdz_radio_button input" type="radio" name="mood" value="5"><img class="mood-select-image" tabindex="0" src="./assets/mood-5.png" alt="Muito feliz" role="radio" aria-checked="false"></label></div></div><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"><div class="mood-text"><div style="display: flex; justify-content: center;"><textarea class="fdz-input-textarea" type="text" name="mood-message" placeholder="Nos conte o que te faz sentir assim" style="height: auto;"></textarea></div><div class="disclaimer ckt_copy">Fique à vontade para falar o que sente. Essa informação é privada e será lida somente por alguém que quer te ver feliz!</div><input type="hidden" name="anonymous" id="fdz-mood-anonymous" value="0"><div style="display: flex; justify-content: center; gap: 4px;"><button id="fdz-btn-send-mood" class="ckt_button-primary-sm-light" type="button" style="outline: none !important;">Enviar humor</button></div></div></div></form></div><div class="row card"><div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 box"><a href="https://app.feedz.com.br/celebracoes" class="info-link"><div class="info-box bg-blue hover-expand-effect"><div class="icon"><i class="fa fa-globe"></i></div><div class="content"><div class="text">Celebrações</div><div class="number"> 0&nbsp;Recebidas</div></div></div></a></div><div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 box"><a href="https://app.feedz.com.br/feedbacks" class="info-link"><div class="info-box bg-red hover-expand-effect"><div class="icon"><i class="fa fa-comments"></i></div><div class="content"><div class="text">Feedbacks</div><div class="number">0&nbsp;Recebidos</div></div></div></a></div><div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 box"><div class="info-box bg-feedz-blue hover-expand-effect"><div class="icon"><i class="fa fa-search"></i></div><div class="content"><div class="text">Pesquisas</div><div class="number">0&nbsp;Respondidas</div></div></div></div></div><div class="row"><div class="col-md-12"><div class="row card"><div class="col-md-12 feed"><h4 aria-label="Atividades Recentes: confira o que os seus colegas estão fazendo na Feedz" style="margin: 0px 0px 20px -15px;">Atividades recentes</h4><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 15:29"> 9 minutos atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/66f0b19f6831dd6f37b53c01692e4d7e.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/1742113/perfil"><b>THIAGO HENRIQUE DO NASCIMENTO ROSA</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 12:21"> 3 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/b46b482257323d4c439622f9b432578d.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/2608646/perfil"><b>PAULO ROBERTO RODRIGUES MORAES</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 11:31"> 4 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/53e64d9397965c7e7177fcd89b5bbf36.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/2162430/perfil"><b>ANDRE RUIZ MALTA RAMOS</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 10:40"> 4 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/33277ae5da4e9befedd5ea275fd96075.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/2399629/perfil"><b>KARINE AUGUSTA DE SOUSA LIMA</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 10:16"> 5 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/user.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/2939436/perfil"><b>DANIEL ADMO DA CRUZ</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 08:55"> 6 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/265e6842a8fd73077e08bd1a1d552160.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/1741885/perfil"><b>FELIPE SOARES DOS SANTOS</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 08:03"> 7 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/8c60cd6316f4e9fae27fc78d588906f4.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/1741727/perfil"><b>LUDOLFO ARNALDO NORDER</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 07:02"> 8 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/23f29b594e636b97120c2c9e7761b46e.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/1742579/perfil"><b>BRUNO RICARDO BARLETO SOUZA</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 06:56"> 8 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/user.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/2691510/perfil"><b>ELITON SENA NOVAES</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div><hr></div></div><div class="row"><div class="col-md-12"><div class="row feed-1"><div class="col-md-12 text-center"><div class="date" title="21/09/2026 06:52"> 8 horas atrás </div><img tabindex="-1" aria-hidden="true" src="./assets/emoji-set.png" style="height: 30px; margin-bottom: -20px;"></div><div class="col-md-2"><div class="image"><img tabindex="-1" aria-hidden="true" class="photo-50 rounded" src="./assets/155ab25902e567b7cb53305a2a91e5e5.png"></div></div><div class="col-md-8"><div class="description" aria-label="teste 1" tabindex="0"><a href="https://app.feedz.com.br/colaboradores/1742039/perfil"><b>LUAN RAMOS DA SILVA</b></a> respondeu o <b>Termômetro de Humor</b></div></div></div></div></div></div></div></div></div></div></div>
+
+
+
+
+
+            </div>
+        
+                	</main>
+
+	<style>
+		html.fdz-touchscreen-menu #fdz-sidebar-menu {
+			display: none !important;
+		}
+
+		html.fdz-touchscreen-menu #fdz-main-sidebar {
+			width: 100% !important;
+			float: none;
+		}
+
+		html.fdz-touchscreen-menu #fdz-main-sidebar #fdz-appraisal-footer,
+		html.fdz-touchscreen-menu #fdz-main-sidebar #fdz-engagement-footer {
+			left: 0 !important;
+			width: 100% !important;
+			padding: 0 5% !important;
+		}
+	</style>
+
+    <script src="./assets/jquery-3.7.0.js"></script>
+    <script src="./assets/jquery-migrate-3.4.1.js"></script>
+
+    <script src="./assets/jquery.mask-1.14.16.min.js"></script>
+
+
+	<script src="./assets/jquery-block-ui.min.js"></script>
+    <script src="./assets/bootstrap.min.js"></script>
+	<script src="./assets/bootstrap-typeahead.js"></script>
+	<script src="./assets/sweetalert.min.js"></script>
+	<script src="./assets/mention.js"></script>
+
+    <script src="./assets/dayjs.min.js"></script>
+
+	<script src="./assets/datatables.min.js"></script>
+	<script src="./assets/menu_sidebar_scroll.js"></script>
+    <script src="./assets/js-xss.js"></script>
+
+  <script>
+		if(window.fdzShouldUseMobileMenu()) {
+        let sidebarMenu  = document.getElementById('fdz-sidebar-menu');
+        let mainSidebar  = document.getElementById('fdz-main-sidebar');
+        let boxCrossSellDp  = document.getElementById('box_cross_sell_dp');
+		let boxCrossSellPresona  = document.getElementById('box_cross_sell_persona');
+
+        sidebarMenu.classList.remove("toggled");
+        mainSidebar.classList.remove("toggled");
+        localStorage.setItem("toggled", false);
+    }
+    let fdzSidebarMenuList = document.getElementById('fdz-sidebar-menu-list');
+    let fdzMainSidebar = document.getElementById('fdz-main-sidebar');
+
+    if(fdzSidebarMenuList) {
+        fdzSidebarMenuList.addEventListener("mouseover", function() {
+            fdzMainSidebar.classList.add("in-hover");
+        });
+
+        fdzSidebarMenuList.addEventListener("mouseout", function() {
+            fdzMainSidebar.classList.remove("in-hover");
+        });
+
+        function initSideBarEvent() {
+            function callback() {
+            const isMenuClosed = localStorage.getItem("toggled");
+            if(isMenuClosed == 'true'){
+                let sidebarMenu  = document.getElementById('fdz-sidebar-menu');
+                sidebarMenu.classList.add("toggled");
+
+                let mainSidebar  = document.getElementById('fdz-main-sidebar');
+                mainSidebar.classList.add("toggled");
+
+                let boxCrossSellDp  = document.getElementById('box_cross_sell_dp');
+                if(boxCrossSellDp) {
+                    boxCrossSellDp.classList.add("toggled");
+                }
+
+				let boxCrossSellPersona  = document.getElementById('box_cross_sell_persona');
+                if(boxCrossSellPersona) {
+                    boxCrossSellPersona.classList.add("toggled");
+                }
+
+                toggleText("Expandir menu")
+            }
+            }
+
+            // initialize side menu if appropriate
+            callback();
+
+            $(window).on("resize", callback);
+			$(window).on("fdz-menu-mode-change fdz-touch-capability-change", callback);
+        }
+
+        function toggleText(text) {
+            let toggleTxt = document.querySelector("#fdz-sidebar-menu .fdz-tooltip .fdz-paragraph");
+
+            if (text !== undefined) {
+            toggleTxt.innerHTML = text
+            return
+            }
+
+            if (toggleTxt.innerHTML == 'Retrair menu') {
+            toggleTxt.innerHTML = 'Expandir menu'
+            } else {
+            toggleTxt.innerHTML = 'Retrair menu'
+            }
+        }
+
+        initSideBarEvent();
+
+        document.getElementById("fdz-btn-toggle").addEventListener('click', () => {
+            toggleText();
+
+            let sidebarMenu  = document.getElementById('fdz-sidebar-menu');
+            sidebarMenu.classList.toggle("toggled");
+
+            let mainSidebar  = document.getElementById('fdz-main-sidebar');
+            mainSidebar.classList.toggle("toggled");
+
+            let boxCrossSellDp  = document.getElementById('box_cross_sell_dp');
+            if(boxCrossSellDp) {
+                boxCrossSellDp.classList.toggle("toggled");
+            }
+
+			let boxCrossSellPersona  = document.getElementById('box_cross_sell_persona');
+            if(boxCrossSellPersona) {
+                boxCrossSellPersona.classList.toggle("toggled");
+            }
+
+            const isMenuClosed = sidebarMenu.classList.contains("toggled");
+            localStorage.setItem("toggled", false);
+
+            if(isMenuClosed) {
+            mainSidebar.classList.add("toggled");
+            localStorage.setItem("toggled", true);
+            }
+        });
+      }
+
+  </script>
+
+	<script>
+		$.extend($.fn.dataTable.defaults, {
+			language: {
+				"url": "/assets/translate/datatable/pt_BR.json"
+			}
+		});
+
+		$(document).ready(function () {
+			if (window.fdzApplyResolvedMenuMode) {
+				window.fdzApplyResolvedMenuMode();
+			}
+
+			$("body").on("click", ".start-import", function (e) {
+				e.preventDefault();
+			});
+
+			function initSideMenuEvent() {
+				let extraSmallDeviscesWidth = 768;
+
+				function callback() {
+					let fdzMain = $("#fdz-main");
+					let windowWidth = $(window).width();
+
+					fdzMain.removeClass('fdz-main-side-menu');
+					if ((window.fdzShouldUseMobileMenu && window.fdzShouldUseMobileMenu()) || windowWidth <= extraSmallDeviscesWidth) {
+						fdzMain.addClass('fdz-main-side-menu');
+					}
+				}
+
+				// initialize side menu if appropriate
+				callback();
+
+				$(window).on('resize', callback);
+				$(window).on('fdz-menu-mode-change fdz-touch-capability-change', callback);
+			}
+
+			setTimeout(function () {
+				$('[data-toggle="popover"]').each(function (e, elem) {
+					let _this = this;
+					let trigger = $(_this).attr('data-trigger');
+					let popover = $(_this).popover({
+						boundary: 'window',
+						container: 'body',
+						html: true,
+						title: $(this).data('popover-title'),
+						content: $(this).data('popover-content'),
+						trigger: trigger,
+						animation: false
+					});
+
+					if (trigger == 'click') {
+						popover.on("show.bs.popover", function (e) {
+							$("[rel=popover]").not(e.target).popover("destroy");
+							$(".popover").remove();
+						});
+					}
+
+					if (trigger == 'hover') {
+						popover.on("mouseenter", function () {
+							$(_this).popover("show");
+
+							$(_this).siblings('[data-toggle="popover"]').each(function () {
+								$(this).popover("hide");
+							});
+						}).parent().on("mouseleave", function () {
+							$(_this).popover("hide");
+						});
+					}
+				});
+			}, 500)
+
+			function initMenuHoverLogic() {
+				var path = window.location.pathname;
+
+				if (path == '/plano-de-desenvolvimento/dashboard' || path == '/feedbacks/historico' || path == '/feedbacks/gestao' || path == '/gestao/1on1' || path == '/trilhas/gestao/pdi'  || path == '/resumo/diversidade' || path == '/avaliacao-desempenho/lista' || path == '/avaliacao-desempenho') {
+					result = path.replace(/\//g, '-');
+
+					$('#fdz-menu .navbar-inverse .fdz-menu-active-item').removeClass('fdz-menu-active-item');
+					$('#fdz-menu .fdz-menu-nav' + result).addClass('fdz-menu-active-item');
+                    $('#fdz-sidebar-menu .navbar-inverse .fdz-menu-active-item').removeClass('fdz-menu-active-item');
+					$('#fdz-sidebar-menu .fdz-menu-nav' + result).addClass('fdz-menu-active-item');
+
+					return;
+				}
+
+				const personalDepartmentPaths = [
+					'/empresa/colaboradores',
+					'/empresa/colaboradores/novo',
+					'/empresa/admissao-digital',
+					'/empresa/holerites',
+					'/empresa/colaboradoresdes',
+					'/gerenciar-ferias/rh',
+					'/gerenciar-ferias/gestor',
+                    '/empresa/relatorios',
+                    '/empresa/saude-ocupacional',
+					'/empresa/desligamento-de-colaboradores',
+                    '/empresa/cargos-e-salarios',
+				];
+
+				const menuNavPessoasEl = $('#fdz-sidebar-menu .fdz-menu-nav-pessoas');
+				const hasMenuNavPessoas = menuNavPessoasEl && menuNavPessoasEl.length
+
+				if (hasMenuNavPessoas && (personalDepartmentPaths.includes(path) || personalDepartmentPaths.find(item => path.includes(item))) ) {
+					menuNavPessoasEl.addClass('fdz-menu-active-item');
+					return;
+				}
+
+				var regex = /(\/\w+)/i;
+				var result = path.match(regex);
+				result = result[0].replace('/', '');
+
+				$('#fdz-menu .navbar-inverse .fdz-menu-active-item').removeClass('fdz-menu-active-item');
+				$('#fdz-menu .fdz-menu-nav-' + result).addClass('fdz-menu-active-item');
+                $('#fdz-sidebar-menu .navbar-inverse .fdz-menu-active-item').removeClass('fdz-menu-active-item');
+				$('#fdz-sidebar-menu .fdz-menu-nav-' + result).addClass('fdz-menu-active-item');
+			}
+			const csrfData = {
+				csrf_name: $('meta[name="csrf-token"]').data('name-value'),
+				csrf_value: $('meta[name="csrf-token"]').data('value-value'),
+			};
+
+			function initBookmarkDelete() {
+				$(".bookmark-delete").on("click", function () {
+					var bookmarkId = $(this).attr('data-id');
+
+					swal({
+						title: "Você tem certeza?",
+						text: "Este favorito não poderá ser recuperado",
+						type: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#DD6B55",
+						confirmButtonText: "Sim",
+						cancelButtonText: "Cancelar",
+						closeOnConfirm: false,
+						closeOnCancel: true
+					}, function (isConfirm) {
+						if (!isConfirm) {
+							return;
+						}
+
+						$.ajax({
+							type: 'DELETE',
+							url: `/api/objetivos/favoritos/${bookmarkId}`,
+							data: csrfData,
+							success: function (data) {
+								swal("Excluído!", "Favorito deletado com sucesso", "success");
+								location.reload();
+							},
+							error: function (data) {
+								swal("Oops!", "Não é possível deletar o favorito", "error");
+							}
+						});
+					});
+				});
+			}
+
+			function initBookmarkGlobalDelete() {
+				$(".bookmarkGlobal-delete").on("click", function () {
+					var bookmarkId = $(this).attr('data-id');
+
+					swal({
+						title: "Você tem certeza?",
+						text: "Se você excluir esse filtro, todos os colaboradores perderão acesso ao filtro. Deseja excluir mesmo assim?",
+						type: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#DD6B55",
+						confirmButtonText: "Sim",
+						cancelButtonText: "Cancelar",
+						closeOnConfirm: false,
+						closeOnCancel: true
+					}, function (isConfirm) {
+						if (!isConfirm) {
+							return;
+						}
+
+						$.ajax({
+							type: 'DELETE',
+							url: `/api/objetivos/favoritos/${bookmarkId}`,
+							data: csrfData,
+							success: function (data) {
+								swal("Excluído!", "Favorito deletado com sucesso", "success");
+								location.reload();
+							},
+							error: function (data) {
+								swal("Oops!", "Não é possível deletar o favorito", "error");
+							}
+						});
+					});
+				});
+			}
+
+			initSideMenuEvent();
+			initMenuHoverLogic();
+			initBookmarkDelete();
+			initBookmarkGlobalDelete();
+    });
+
+
+		$(document).on('click', "#id-activate-support", function () {
+			swal({
+				title: "Liberar suporte",
+				text: "Ao ativar o suporte, o time de Sucesso do Cliente da Feedz terá acesso aos dados da empresa por 48h." +
+					"Você deseja ativar o suporte?",
+				type: "warning",
+				showCancelButton: true,
+				confirmButtonColor: "#DD6B55",
+				confirmButtonText: "Sim, liberar suporte",
+				cancelButtonText: "Cancelar",
+				closeOnConfirm: false,
+				closeOnCancel: true
+			}, function (isConfirm) {
+				$.blockUI();
+				if (isConfirm) {
+
+											$.ajax({
+							type: 'POST',
+							url: '/empresa/liberar-suporte',
+							success: function (data) {
+								$.unblockUI();
+								if (data.success == true) {
+									swal("Sucesso!", "Suporte ativado com sucesso!", "success");
+								} else {
+									swal("Oops", data.message, "error");
+								}
+							},
+							error: function (data) {
+								$.unblockUI();
+								swal("Oops!", "Ocorreu um erro. Por favor tente novamente", "error");
+							}
+						});
+									} else {
+					$.unblockUI();
+				}
+			});
+		});
+
+		$(document).on("click", function(event){
+      let $trigger = $(".fdz-dropdown");
+      let isModalButton = $(event.target).hasClass('fdz-dropdown-btn') || $(event.target).parents('.fdz-dropdown-btn').hasClass('fdz-dropdown-btn')
+
+			if ((!isModalButton && $trigger.length) && ($trigger !== event.target && !$trigger.has(event.target).length)) {
+        $(".fdz-dropdown").trigger('remove').remove()
+      }
+    });
+
+	</script>
+
+	
+	
+	
+	    <link rel="stylesheet" href="./assets/app-1790015209.css">
+    <script src="./assets/app-1790015209.js"></script><div id="toaster" data-v-app=""><!----></div><div data-v-7d66fa3f="" class="container" style="display: none;"><div data-v-0541ae07="" data-v-7d66fa3f="" class="fdz-modal"><div data-v-0541ae07="" id="modal_id" class="fdz-modal-container"><div data-v-0541ae07="" class="fdz-modal-header"><div data-v-0541ae07="" class="fdz-modal-close"><span data-v-0541ae07="" class="fa-solid fa-x close-icon"></span></div><div data-v-0541ae07="" class="fdz-modal-title"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-title"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-title-text">Histórico de Interações</div></div></div></div><div data-v-0541ae07="" class="fdz-modal-wrapper"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="mood-header"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-mood"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-mood-title">Humor</div><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-mood-icon"><img data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-mood-icon-icon" src="./assets/mood-1.png"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-mood-icon-text">1 - </div></div></div><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-date"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-date-title">Data do humor</div><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-date-date"></div></div></div><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-desc"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-desc-title">Descrição</div><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-mood-container-desc-desc"></div><!----></div></div></div></div><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-message padding-chat-has-less"><div data-v-18afb85c="" data-v-7d66fa3f="" data-v-0541ae07-s="" class="fdz-chat-message-container"><div data-v-18afb85c="" class="fdz-chat-message-container-messages"><div data-v-18afb85c="" class="fdz-chat-message-container-messages-loading" style="display: none;"><div data-v-18afb85c="" class="ckt-basic-loader-layout"><!----><div class="ckt_ellipsis_loader"><div class="ellipsis_dark"></div><div class="ellipsis_dark"></div><div class="ellipsis_dark"></div><div class="ellipsis_dark"></div></div><!----></div><span data-v-18afb85c="">Carregando mensagens...</span></div><div data-v-0faf8051="" data-v-7d66fa3f="" data-v-18afb85c-s="" class="fdz-alert alert-warning" id="moodAlertElement" style="width: calc(100% - 48px); max-width: 100%; display: none;"><div data-v-0faf8051="" class="fdz-alert-content"><i data-v-50023932="" data-v-0faf8051="" data-testid="icon" class="ckt-container fa-solid fa-circle-exclamation ckt-size-md fa-rotate-0 fa-pull-0 fdz-alert-icon"></i><div data-v-0faf8051="" class="fdz-alert-content-wrapper"><span data-v-0faf8051="" class="fdz-alert-text" style="align-items: center;">Esse humor foi respondido de forma anônima.</span><span data-v-0faf8051="" class="fdz-alert-link" style="align-self: center;"><!----><!----></span></div></div></div></div></div></div></div></div><div data-v-0541ae07="" class="fdz-modal-footer"><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-footer"><textarea data-v-cd7db1b1="" data-v-7d66fa3f="" data-v-0541ae07-s="" rows="2" class="ckt-textarea container-body-footer-textarea" maxlength="" placeholder="" value=""></textarea><div data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-footer-btn"><button data-v-f601bcd4="" data-v-7d66fa3f="" data-v-0541ae07-s="" disabled="" class="button-primary-sm-light" type="button" style="width: auto;">Enviar</button><span data-v-7d66fa3f="" data-v-0541ae07-s="" class="container-body-footer-btn-anonymous" style="display: none;">*Seu anonimato será mantido na conversa.</span></div></div></div></div></div></div><div data-v-c5f77fd4="" id="double-check-modal" role="dialog" aria-modal="true" class="fdz-modal" style="display: none;"><div data-v-c5f77fd4="" class="ckt_surface_thin_dark light-modal" style="width: 470px !important;"><div data-v-c5f77fd4="" class="light-modal-header"><div data-v-c5f77fd4="" class="light-modal-title"><div data-v-8e704603="" tabindex="0" class="ckt-title-slot-wrapper ckt-title-warning" style="width: 100%;"><i data-v-50023932="" data-v-8e704603="" data-testid="icon" class="ckt-container fa-solid fa-circle-exclamation ckt-size-md fa-rotate-0 fa-pull-0"></i><div data-v-8e704603="" class="ckt-title-slot-wrapper-text" style="color: white;">Fechar banner?</div></div><div data-v-8e704603="" class="divisor"></div></div><!----></div><div data-v-8e704603="" tabindex="0" class="ckt-default-slot-wrapper"><div data-v-147d9c0b="" data-v-eb8c9ce6="" class="card-header" style="text-align: left;"><div data-v-147d9c0b="" class="title-group"><div data-v-147d9c0b="" class="h5 font-weight-semibold title" data-testid="title"><span data-v-eb8c9ce6="" class="ckt-mood-chat-home-alert-title">Você perderá acesso as interações sobre o Humor.</span></div><div data-v-147d9c0b="" class="subtitle" data-testid="subtitle"><span data-v-eb8c9ce6="" class="ckt-mood-chat-home-alert-subtitle">Ao fechar o banner você irá perder o link de acesso para o chat. Só será possível recuperar o link caso haja uma nova mensagem.</span></div></div><!----></div></div><div data-v-8e704603="" class="divisor"></div><div data-v-8e704603="" class="buttons-right"><button data-v-f601bcd4="" data-v-8e704603="" class="button-outline-sm-light" type="button" tabindex="0" data-test="cancel_btn" style="width: auto;">Cancelar</button><button data-v-f601bcd4="" data-v-8e704603="" class="button-ghost-sm-light" type="button" tabindex="0" data-test="confirm_btn" style="width: auto;">Fechar</button></div></div></div><div id="toaster" data-v-app=""><!----></div>
+<link href="./assets/jquery.dataTables.min.css" rel="stylesheet">
+
+<script src="./assets/jquery.countdown.min.js"></script>
+<script src="./assets/linkify.min.js"></script>
+<script src="./assets/linkify-jquery.min.js"></script>
+<script>
+
+   let table = $('#feedzTeamTable').DataTable({
+    pagingType: "full_numbers",
+    aaSorting: [],
+    searching: true,
+    paging: false,
+    ordering: true,
+    bInfo: false,
+    order: [[1, "desc"]]
+    });
+
+    $('#btn-widegt-show-more').on('click', function(e) {
+        e.preventDefault();
+
+        if($('.widget-content').css('height') > '300px') {
+            $('.widget-content').attr('style', 'height: 300px;');
+            $(this).text('Mostrar mais');
+        } else {
+            $('.widget-content').attr('style', 'height: auto;');
+            $(this).text('Mostrar menos');
+        }
+    });
+</script>
+
+<script>
+    $(".description").linkify({
+        target: "_blank"
+    });
+
+    $('.notification-line').on('click', function() {
+        var dataId = $(this).attr('data');
+
+        window.location.href = dataId;
+    });
+
+    function resizeIframe() {
+        var width = $('iframe').width();
+        var height = (width/1.5);
+        $('iframe').height(height);
+    };
+
+    resizeIframe();
+
+    
+    
+
+</script>
+<script src="./assets/cropper.min.js"></script>
+<script src="./assets/fix-toBlob-in-Edge.min.js"></script>
+<script src="./assets/profile-avatar.js"></script>
+
+
+
+
+<script>
+    //Mapear os elementos da secao de alertas na home
+    const panelHomeAlertSection = document.getElementById("panel-home-alert-section");
+    const panelHomeAlertSectionTitle = document.getElementById("panel-home-alert-section-title");
+    const panelHomeAlertSectionGroupItems = document.getElementById("panel-home-alert-section-group-items");
+    //Verificar se tem filhos, se tiver adicionar ariaDescription, se nao excluir toda section
+    function setAcessibilityHomeAlertSection() {
+        let panelHomeAlertTotalItems = 0;
+        if (panelHomeAlertSectionGroupItems) {
+            panelHomeAlertTotalItems = panelHomeAlertSectionGroupItems.childElementCount;
+            if (panelHomeAlertTotalItems) {
+                panelHomeAlertSectionTitle.ariaDescription = `seção com ${panelHomeAlertTotalItems} itens`
+            }
+        }
+        if (panelHomeAlertTotalItems == 0) {
+            panelHomeAlertSection.remove();
+        }
+    }
+    //Criar um observador dentro do agrupamento de alertas
+    //para validar quantos filhos tem dentro da section
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === "childList" && mutation.target.id === "panel-home-alert-section-group-items") {
+                setAcessibilityHomeAlertSection();
+            }
+        });
+    });
+    //Settar o observador para o elemento pai que agrupa os alertas na home
+    observer.observe(panelHomeAlertSectionGroupItems, {
+        attributes: false,
+        childList: true,
+        subtree: false,
+    });
+
+    window.addEventListener('load', function () {
+        const featuredImageElement = document.getElementById("featured-img");
+        if (featuredImageElement) {
+            const featuredImage = featuredImageElement.src;
+
+            if (featuredImage.includes('imgur') && (!featuredImage.includes('jpg') && !featuredImage.includes('jpeg') && !featuredImage.includes('png'))) {
+                featuredImageElement.src = `${featuredImage}.jpg`;
+            }
+        }
+    });
+</script>
+
+<script>
+    window.addEventListener('load', () => {
+
+        window.mobileCheck = function() {
+            let check = false;
+            (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
+            return check;
+        };
+
+        if (window.mobileCheck() || window.innerWidth <= 768) {
+            $(".fdz-employee-link-oneonone").removeAttr("href");
+        }
+
+        setTimeout(() => {
+            $('#fdz-btn-send-mood').prop('disabled', false);
+            $('#fdz-mood-btn-anonymous').prop('disabled', false);
+        }, 0);
+
+        $('.mood-select-image').on('keypress', function (e) {
+            let enterKey = 13;
+            if (e.which === enterKey) {
+                $('.mood-select-image').attr('aria-checked', 'false');
+                $(this).attr('aria-checked', 'true');
+                $(this).prev('input[type="radio"]').prop('checked', true);
+            }
+        });
+
+
+        $("body").on('click', '#fdz-mood-btn-anonymous', function () {
+            $('#fdz-mood-anonymous').val(1);
+            $('#fdz-btn-send-mood').trigger('click');
+        });
+
+        $("body").on('click', '#fdz-btn-send-mood', function (e) {
+            const form = $('#fdz-panel-form-mood');
+            const arr = form.serializeArray();
+            const arrItems = [];
+
+            arr.forEach(function (item) {
+                arrItems[item.name] = item.value;
+            });
+
+            if (!arrItems['mood'] || arrItems['mood'] == '') {
+                $('#fdz-mood-anonymous').val(0);
+                return sweetAlert("Atenção", "Selecione um humor para prosseguir", 'warning');
+            }
+
+            $.blockUI();
+
+            $.ajax({
+                type: 'POST',
+                url: `/api/humor/novo`,
+                data: arr,
+                success: function (response) {
+                    if (!response.success) {
+                        $.unblockUI();
+                        sweetAlert('Ops!', response.message , 'error');
+                        return;
+                    }
+
+                    if (response.data.type == 'neutral') {
+                        sweetAlert("Obrigado!", response.message);
+                    }
+
+                    if (response.data.type == 'success') {
+                        sweetAlert("Obrigado!", response.message , 'success');
+                    }
+
+                    $('#fdz-mood-container').remove();
+                    $('#fdz-main').scrollTop(0);
+                    $.unblockUI();
+                },
+                error: function (response) {
+                    $.unblockUI();
+                    return sweetAlert('Ops!', response.responseJSON.message, 'error');
+                }
+            });
+        });
+
+        $("body").on('submit', '#fdz-panel-form-mood', function (e) {
+            e.preventDefault();
+        });
+    }, false);
+</script>
+
+
+
+	<script type="text/javascript">
+		var host = window.location.hostname;
+
+    if (true || host != 'feedz.local' && host != 'localhost' && host != '127.0.0.1') {
+      function initItercom() {
+
+        window.intercomSettings = {"api_base":"https:\/\/api-iam.intercom.io","app_id":"vfnkkwu1","user_hash":"3fb3dff117cc81dad1a2e772ad8506d02114cebcca02e33aa63b724c2a23d3bd","user_id":2939451,"name":"ALEXANDRE CASTRO P DA SILVA","email":"alexandre.pereira@hinodegroup.net","Papel":"Administrador","Status":null,"Data de Desligamento":null,"Idioma do Usu\u00e1rio":"Portugu\u00eas","Data \u00daltimo Login":1790015868,"Data de Cria\u00e7\u00e3o":1789582724,"Data de Admiss\u00e3o":null,"Descri\u00e7\u00e3o do Cargo":"GER EXEC TECNOLOGIA","Departamento do Colaborador":"DIR TECNOLOGIA - 01 41","company":{"id":8351,"name":"SALC GROUP","created_at":1716569214,"Curva":"B","Idioma da Base":"Portugu\u00eas","Cliente Pagante":"true","Etapa":"Ongoing","M\u00f3dulo Objetivos":"false","M\u00f3dulo Avalia\u00e7\u00e3o de Desempenho":"true","M\u00f3dulo Pesquisa de Engajamento":"true","M\u00f3dulo eNPS":"true","M\u00f3dulo Pesquisa R\u00e1pida":"true","M\u00f3dulo Super Pesquisa":"true","M\u00f3dulo Humor":"true","M\u00f3dulo Celebra\u00e7\u00e3o":"true","M\u00f3dulo Feedback":"true","M\u00f3dulo Planos de Desenvolvimento":"true","M\u00f3dulo 1on1":"true","M\u00f3dulo Gamifica\u00e7\u00e3o":"false","M\u00f3dulo Meritmoney":"false","M\u00f3dulo Ouvidoria":"false","M\u00f3dulo Comunicados":"true","M\u00f3dulo Departamento Pessoal":"true","M\u00f3dulo F\u00e9rias":"true","M\u00f3dulo Holerites":"false","M\u00f3dulo Sucess\u00e3o":"true","M\u00f3dulo Feedz Persona":"false","Feature Flag":"[127],[153],[159],[73],[85],[151],[119],[132],[139],[128],[129],[2],[78],[93],[131],[83],[104],[161],[64],[96],[110],[16],[98],[149],[141],[130],[102],[84],[121],[125],[88],[76],[90],[114],[106],[34],[160],[58],","Okr Forecast":"true","M\u00f3dulo - Fluxo de aprova\u00e7\u00e3o em objetivos":"false","M\u00f3dulo Cargos e Sal\u00e1rios":"false"}};
+
+        var w = window;
+        var ic = w.Intercom;
+        if (typeof ic === "function") {
+            ic('reattach_activator');
+            ic('update', w.intercomSettings);
+        } else {
+            var d = document;
+            var i = function() {
+                i.c(arguments);
+            };
+            i.q = [];
+            i.c = function(args) {
+                i.q.push(args);
+            };
+            w.Intercom = i;
+            var l = function() {
+                var s = d.createElement('script');
+                s.type = 'text/javascript';
+                s.async = true;
+                s.src = 'https://widget.intercom.io/widget/vfnkkwu1';
+                var x = d.getElementsByTagName('script')[0];
+                x.parentNode.insertBefore(s, x);
+            };
+            l();
+        }
+      }
+
+      initItercom();
+		}
+
+		function init() {
+			gapi.load('auth2', function () {
+				auth2 = gapi.auth2.init({
+					client_id: '372805969773-lf05m73li9b08sr6aq8f6c74mm1sop9b.apps.googleusercontent.com',
+				});
+			});
+		}
+
+		function signOut() {
+			var auth2 = gapi.auth2.getAuthInstance();
+			auth2.signOut().then(function () { });
+		}
+
+		setTimeout(function () {
+			init();
+		}, 230);
+	</script>
+
+	
+	
+	<!-- 	<div data-upvoty></div>
+	<script type='text/javascript' src="https://feedz.upvoty.com/javascript/upvoty.embed.js"> </script>
+	<script type='text/javascript'>
+	upvoty.init('identify', {
+		user: {
+			id: '2939451',
+			name: 'ALEXANDRE CASTRO P DA SILVA',
+			email: 'alexandre.pereira@hinodegroup.net',
+		},
+		baseUrl: 'ideias.feedz.com.br',
+		publicKey: 'db3e7c2b2a859c47888bdffe8f5b0864',
+	});
+	 -->
+
+	
+	<script>
+		// Setting localStorage
+		function initLocalStorage() {
+			localStorage.setItem('sys_profile_id', "2939451");
+		}
+
+		initLocalStorage();
+	</script>
+
+	<script>
+		var decodeString = (function () {
+			var doc = document.implementation.createHTMLDocument("");
+			var element = doc.createElement('div');
+
+			function getText(str) {
+
+				if (!str)
+					return null
+
+				element.innerHTML = str;
+				str = element.textContent;
+				element.textContent = '';
+				return str;
+			}
+
+			function decodeHTMLString(str) {
+				if (!str)
+					return null
+
+				if (str && typeof str === 'string') {
+					var x = getText(str);
+					while (str !== x) {
+						str = x;
+						x = getText(x);
+					}
+					return x;
+				}
+			}
+			return decodeHTMLString;
+    })();
+	</script>
+	<script>
+		document.querySelectorAll(".fdz-list-item-sort").forEach((el) => {
+			el.addEventListener("click", (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				document.querySelectorAll(".fdz-list-item-sort").forEach((element) => {
+					element.parentElement.classList.remove("active");
+				})
+				e.currentTarget.parentElement.classList.add("active");
+			});
+		});
+	</script>
+
+	<script src="./assets/jquery-ui-1.13.2.min.js"></script>
+
+
+	<script src="./assets/jquery-ui-i18n.min.js"></script>
+
+	<script>
+		$(document).ready(function () {
+      $.datepicker.setDefaults($.datepicker.regional['pt-BR']);
+
+      const language = 'pt_BR';
+
+			switch (language) {
+				case 'es_ES':
+					var lg = 'es';
+				break;
+				case 'pt_BR':
+					var lg = 'pt-BR';
+				break;
+				case 'en_US':
+					var lg = 'en-US';
+				break;
+				default:
+					var lg = 'pt-BR';
+					break;
+			}
+
+			$.datepicker.setDefaults($.datepicker.regional[lg]);
+		});
+	</script>
+  <script>
+    $(document).ready(function () {
+      $( "button, submit, a" ).on('click', function() {
+        if($( this ).is(".mixPanelControl")){
+        const newMixpanel = mixpanel;
+          if(typeof newMixpanel !== "undefined"){
+            let props = JSON.parse($(this).attr("data-mixpanel-props"));
+            let event = $( this ).attr("data-mixpanel-event");
+            newMixpanel && newMixpanel.track(event, props);
+          }
+        }
+      });
+		if ($('body').find('.personified')) {
+			$('body').css('paddingBottom', `${$(".personified").outerHeight(true)}px`)
+		}
+    });
+  </script>
+
+  <script>
+		if(window.fdzShouldUseMobileMenu()) {
+        let sidebarMenuScroll  = document.querySelector('#fdz-sidebar-menu.new');
+        let mainSidebarScroll  = document.getElementById('fdz-main-sidebar');
+        let boxCrossSellDpScroll  = document.getElementById('box_cross_sell_dp');
+		let boxCrossSellPersonaScroll  = document.getElementById('box_cross_sell_persona');
+
+        sidebarMenuScroll.classList.remove("toggled-scroll");
+        mainSidebarScroll.classList.remove("toggled-scroll");
+
+        if(boxCrossSellDpScroll){
+            boxCrossSellDpScroll.classList.remove("toggled-scroll");
+        }
+
+		if(boxCrossSellPersonaScroll){
+            boxCrossSellPersonaScroll.classList.remove("toggled-scroll");
+        }
+        localStorage.setItem("toggled-scroll", false);
+    }
+
+    let fdzsidebarMenuScrollList = document.getElementById('fdz-menu-sidebar-scroll');
+    let fdzMainSidebarScroll = document.getElementById('fdz-main-sidebar');
+		let fdzSidebarToggleButtonNew = document.getElementById('fdz-btn-toggle-new');
+
+		function syncToggleTextScroll(text) {
+			let toggleTxt = document.querySelector("#fdz-sidebar-menu.new .fdz-tooltip .fdz-paragraph");
+
+			if (!toggleTxt) {
+				return;
+			}
+
+			if (text !== undefined) {
+				toggleTxt.innerHTML = text
+				return
+			}
+
+			if (toggleTxt.innerHTML == 'Retrair menu') {
+				toggleTxt.innerHTML = 'Expandir menu'
+			} else {
+				toggleTxt.innerHTML = 'Retrair menu'
+			}
+		}
+
+		function syncNewSidebarCollapsedState() {
+			let sidebarMenuScroll  = document.querySelector('#fdz-sidebar-menu.new');
+			let mainSidebarScroll  = document.getElementById('fdz-main-sidebar');
+			let boxCrossSellDpScroll  = document.getElementById('box_cross_sell_dp');
+			let boxCrossSellPersonaScroll  = document.getElementById('box_cross_sell_persona');
+
+			if (!sidebarMenuScroll || !mainSidebarScroll) {
+				return;
+			}
+
+			const isMenuClosed = localStorage.getItem("toggled-scroll") === 'true';
+
+			sidebarMenuScroll.classList.toggle("toggled-scroll", isMenuClosed);
+			mainSidebarScroll.classList.toggle("toggled-scroll", isMenuClosed);
+
+			if(boxCrossSellDpScroll){
+				boxCrossSellDpScroll.classList.toggle("toggled-scroll", isMenuClosed);
+			}
+
+			if(boxCrossSellPersonaScroll){
+				boxCrossSellPersonaScroll.classList.toggle("toggled-scroll", isMenuClosed);
+			}
+
+			syncToggleTextScroll(isMenuClosed ? 'Expandir menu' : 'Retrair menu');
+		}
+
+		function handleNewSidebarToggleClick(event) {
+			let sidebarMenuScroll  = document.querySelector('#fdz-sidebar-menu.new');
+			let mainSidebarScroll  = document.getElementById('fdz-main-sidebar');
+			let boxCrossSellDpScroll  = document.getElementById('box_cross_sell_dp');
+			let boxCrossSellPersonaScroll  = document.getElementById('box_cross_sell_persona');
+
+			if (!sidebarMenuScroll || !mainSidebarScroll) {
+				return;
+			}
+
+			event.preventDefault();
+			event.stopImmediatePropagation();
+
+			const isMenuClosed = !sidebarMenuScroll.classList.contains("toggled-scroll");
+
+			sidebarMenuScroll.classList.toggle("toggled-scroll", isMenuClosed);
+			mainSidebarScroll.classList.toggle("toggled-scroll", isMenuClosed);
+
+			if(boxCrossSellDpScroll){
+				boxCrossSellDpScroll.classList.toggle("toggled-scroll", isMenuClosed);
+			}
+
+			if(boxCrossSellPersonaScroll){
+				boxCrossSellPersonaScroll.classList.toggle("toggled-scroll", isMenuClosed);
+			}
+
+			localStorage.setItem("toggled-scroll", isMenuClosed ? 'true' : 'false');
+			syncToggleTextScroll(isMenuClosed ? 'Expandir menu' : 'Retrair menu');
+		}
+
+		syncNewSidebarCollapsedState();
+		$(window).on("resize", syncNewSidebarCollapsedState);
+		$(window).on("fdz-menu-mode-change fdz-touch-capability-change", syncNewSidebarCollapsedState);
+
+		if (fdzSidebarToggleButtonNew && !fdzSidebarToggleButtonNew.dataset.fdzNewToggleBound) {
+			fdzSidebarToggleButtonNew.dataset.fdzNewToggleBound = 'true';
+			fdzSidebarToggleButtonNew.addEventListener('click', handleNewSidebarToggleClick, true);
+		}
+
+    if (fdzsidebarMenuScrollList) {
+
+        fdzsidebarMenuScrollList.addEventListener("mouseover", function() {
+            fdzMainSidebarScroll.classList.add("in-hover");
+        });
+
+        fdzsidebarMenuScrollList.addEventListener("mouseout", function() {
+            fdzMainSidebarScroll.classList.remove("in-hover");
+        });
+
+    }
+
+  </script>
+
+
+
+	
+
+
+<iframe id="intercom-frame" style="position: absolute !important; opacity: 0 !important; width: 1px !important; height: 1px !important; top: 0 !important; left: 0 !important; border: none !important; display: block !important; z-index: -1 !important; pointer-events: none;" aria-hidden="true" tabindex="-1" title="Intercom" src="./assets/saved_resource.html"></iframe><div id="onesignal-bell-container" class="onesignal-bell-container onesignal-reset onesignal-bell-container-bottom-left"><div id="onesignal-bell-launcher" class="onesignal-bell-launcher onesignal-bell-launcher-sm onesignal-bell-launcher-bottom-left onesignal-bell-launcher-theme-default onesignal-bell-launcher-active" style="bottom: 5px; left: 5px;"><div class="onesignal-bell-launcher-button"><svg class="onesignal-bell-svg" xmlns="http://www.w3.org/2000/svg" width="99.7" height="99.7" viewBox="0 0 99.7 99.7" style="filter: drop-shadow(0 2px 4px rgba(34,36,38,0.35));; -webkit-filter: drop-shadow(0 2px 4px rgba(34,36,38,0.35));;"><circle class="background" cx="49.9" cy="49.9" r="49.9" style="fill: rgb(0, 104, 179);"></circle><path class="foreground" d="M50.1 66.2H27.7s-2-.2-2-2.1c0-1.9 1.7-2 1.7-2s6.7-3.2 6.7-5.5S33 52.7 33 43.3s6-16.6 13.2-16.6c0 0 1-2.4 3.9-2.4 2.8 0 3.8 2.4 3.8 2.4 7.2 0 13.2 7.2 13.2 16.6s-1 11-1 13.3c0 2.3 6.7 5.5 6.7 5.5s1.7.1 1.7 2c0 1.8-2.1 2.1-2.1 2.1H50.1zm-7.2 2.3h14.5s-1 6.3-7.2 6.3-7.3-6.3-7.3-6.3z" style="fill: white;"></path><ellipse class="stroke" cx="49.9" cy="49.9" rx="37.4" ry="36.9" style="stroke: white;"></ellipse></svg></div><div class="onesignal-bell-launcher-badge" style="filter: drop-shadow(0 2px 4px rgba(34,36,38,0));; -webkit-filter: drop-shadow(0 2px 4px rgba(34,36,38,0));;"></div><div class="onesignal-bell-launcher-message"><div class="onesignal-bell-launcher-message-body"></div></div><div class="onesignal-bell-launcher-dialog" style="filter: drop-shadow(0px 2px 2px rgba(34,36,38,.15));; -webkit-filter: drop-shadow(0px 2px 2px rgba(34,36,38,.15));;"><div class="onesignal-bell-launcher-dialog-body"></div></div></div></div><iframe id="ssIFrame_google" sandbox="allow-scripts allow-same-origin allow-storage-access-by-user-activation" allow="identity-credentials-get" aria-hidden="true" frame-border="0" src="./assets/iframe.html" style="position: absolute; width: 1px; height: 1px; inset: -9999px; display: none;"></iframe><div id="intercom-tooltips-container" class="intercom-namespace"><style>
+  html.intercom-mobile-messenger-active,
+  html.intercom-mobile-messenger-active > body,
+  html.intercom-modal-open,
+  #intercom-container-body {
+    overflow: hidden !important;
+  }
+
+  html.intercom-mobile-messenger-active,
+  html.intercom-mobile-messenger-active > body {
+    position: static !important;
+    transform: none !important;
+  }
+
+  html.intercom-mobile-messenger-active > body {
+    height: 0 !important;
+    margin: 0 !important;
+  }
+
+  iframe#intercom-frame {
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    top: 0 !important;
+    left: 0 !important;
+    border: none !important;
+    display: block !important;
+    z-index: -1 !important;
+    
+  }
+</style></div><div id="intercom-css-container"><style data-emotion="intercom-with-namespace-global" data-s=""></style><style data-emotion="intercom-with-namespace-global" data-s=""></style><style data-emotion="intercom-with-namespace" data-s=""></style></div><div id="intercom-container" class="intercom-namespace"><style>
+  html.intercom-mobile-messenger-active,
+  html.intercom-mobile-messenger-active > body,
+  html.intercom-modal-open,
+  #intercom-container-body {
+    overflow: hidden !important;
+  }
+
+  html.intercom-mobile-messenger-active,
+  html.intercom-mobile-messenger-active > body {
+    position: static !important;
+    transform: none !important;
+  }
+
+  html.intercom-mobile-messenger-active > body {
+    height: 0 !important;
+    margin: 0 !important;
+  }
+
+  iframe#intercom-frame {
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    top: 0 !important;
+    left: 0 !important;
+    border: none !important;
+    display: block !important;
+    z-index: -1 !important;
+    
+  }
+</style><div class="intercom-app" aria-live="polite"><div class="intercom-messenger-frame intercom-with-namespace-1ovmh0h eewivui0"></div><div class="intercom-with-namespace-18hant6 edrs4yi0"><iframe allowfullscreen="" class="intercom-launcher-frame intercom-with-namespace-l9pzvy efr23pf0" name="intercom-launcher-frame" title="Abertura do Messenger da Intercom" data-intercom-frame="true" style="color-scheme: normal;" src="./assets/saved_resource(1).html"></iframe></div><div id="intercom-modal-container"></div></div></div></body></html>

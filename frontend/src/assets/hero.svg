@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 343 361" width="343" height="361">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2ff"/>
+      <stop offset="1" stop-color="#e0e7ff"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.7" cy="0.75" r="0.55">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="343" height="361" fill="url(#bg)"/>
+  <rect width="343" height="361" fill="url(#halo)"/>
+  <circle cx="273" cy="291" r="90" fill="#6366f1"/>
+  <circle cx="273" cy="291" r="130" fill="none" stroke="#818cf8" stroke-width="3" stroke-opacity="0.6"/>
+  <circle cx="50" cy="50" r="90" fill="none" stroke="#a5b4fc" stroke-width="2" stroke-opacity="0.5"/>
+  <circle cx="50" cy="50" r="45" fill="#c7d2fe" fill-opacity="0.6"/>
+  <text x="171" y="200" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-size="140" font-weight="800" fill="#4338ca" text-anchor="middle">S</text>
+</svg>

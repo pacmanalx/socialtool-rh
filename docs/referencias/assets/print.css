@@ -1,0 +1,33 @@
+@page {
+    margin: 1cm;
+    margin-top: 2cm;
+    size: portrait;
+}
+* {
+    overflow-wrap: break-word;
+}
+body {
+    background-color: white;
+    background-image: none !important;
+    overflow: auto;
+    height: auto;
+    zoom: 0.5;
+}
+body header {
+    visibility: hidden;
+    display: block;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+body main {
+    height: auto;
+    overflow: auto;
+}
+a:after {
+    content: '' !important;
+}
+
+.d-print-none {
+    display: none!important;
+}

@@ -1,0 +1,52 @@
+# ---- Backend .NET ----
+**/bin/
+**/obj/
+*.user
+*.userosscache
+*.suo
+.vs/
+out/
+
+# ---- Frontend Node / Vite ----
+node_modules/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+.eslintcache
+.oxlintcache
+
+# ---- Configuração local (nunca versionar) ----
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+
+# ---- Segredos e chaves ----
+*.pem
+*.key
+*.pfx
+!/**/references/*.pem
+
+# ---- Sistema ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- IDE / editor ----
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ---- Docker ----
+.docker-data/
+mysql-data/
+
+# ---- Logs ----
+*.log
+logs/
