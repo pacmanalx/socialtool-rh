@@ -15,19 +15,17 @@ O sistema conta com 4 perfis fundamentais de permissão, garantindo o princípio
 | **Visualizar Humor do Time** | ❌ | ✅ (Apenas se >= 4) | ✅ (Apenas se >= 4) | ✅ |
 | **Criar Ciclos de Avaliação 360°** | ❌ | ❌ | ✅ | ✅ |
 | **Acessar Matriz 9-Box e Calibração** | ❌ | Do seu time | Toda a empresa | Toda a empresa |
-| **Gerenciar Assinatura, Billing e Usuários** | ❌ | ❌ | ❌ | ✅ |
+| **Gerenciar Configurações da Organização e Usuários** | ❌ | ❌ | ❌ | ✅ |
 
 ---
 
-## 🔒 Garantia de Isolamento Multi-Tenant
+## 🔒 Isolamento e Controle de Acesso
 
-Para impedir qualquer vazamento de dados entre empresas clientes (*Cross-Tenant Data Leak*):
+Cada instalação atende uma única organização, então não há dados de outras empresas no mesmo banco. Dentro da organização:
 
-1. **Validação em Camada Dupla**:
-   - **Camada de Aplicação (Middleware)**: O `tenant_id` é extraído do JWT e do subdomínio verificado. Se houver discrepância entre o token e o subdomínio, a requisição é rejeitada imediatamente (`HTTP 403 Forbidden`).
-   - **Camada de Banco de Dados (EF Core 10)**: O `HasQueryFilter` aplica `WHERE tenant_id = @currentTenantId` em todas as consultas SQL geradas automaticamente.
-2. **Prevenção de Injeção de Tenant**:
-   - As operações de escrita (`INSERT` / `UPDATE`) preenchem o `tenant_id` automaticamente a partir do contexto de sessão do usuário autenticado, ignorando qualquer `tenant_id` enviado no corpo da requisição pelo cliente.
+1. **Tudo exige autenticação**: só login, convite e recuperação de senha são públicos.
+2. **Autorização por papel e por relação**: o papel vem do token assinado; regras como "líder vê o próprio time" são checadas no servidor, nunca a partir de dados enviados pelo cliente.
+3. **Desativação imediata**: a cada requisição o servidor confere que a conta continua ativa, então desligar alguém corta o acesso na hora.
 
 ---
 

@@ -3,9 +3,8 @@ using SocialTool.Domain.Enums;
 
 namespace SocialTool.Domain.Entities;
 
-public class Post : BaseEntity, ITenantEntity
+public class Post : BaseEntity
 {
-    public Guid TenantId { get; set; }
     public Guid AuthorId { get; set; }
     public PostType Type { get; set; } = PostType.General;
     public string? Title { get; set; }
@@ -14,7 +13,6 @@ public class Post : BaseEntity, ITenantEntity
     public bool IsPinned { get; set; } = false;
 
     // Navigations
-    public Tenant Tenant { get; set; } = null!;
     public User Author { get; set; } = null!;
     public Recognition? Recognition { get; set; }
 

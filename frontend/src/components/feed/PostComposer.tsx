@@ -11,6 +11,7 @@ interface PostComposerProps {
 
 export const PostComposer: React.FC<PostComposerProps> = ({ onPostCreated, initialMode = 'post' }) => {
   const { user, refreshUser } = useAuth();
+  const canAnnounce = user?.role === 'HR' || user?.role === 'Admin';
   const [mode, setMode] = useState<'post' | 'recognition'>(initialMode);
 
   // Normal Post State
@@ -192,15 +193,19 @@ export const PostComposer: React.FC<PostComposerProps> = ({ onPostCreated, initi
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <label className="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isAnnouncement}
-                  onChange={(e) => setIsAnnouncement(e.target.checked)}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
-                />
-                <span>Comunicado oficial / Anúncio</span>
-              </label>
+              {canAnnounce ? (
+                <label className="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAnnouncement}
+                    onChange={(e) => setIsAnnouncement(e.target.checked)}
+                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span>Comunicado oficial / Anúncio</span>
+                </label>
+              ) : (
+                <span />
+              )}
 
               <button
                 type="submit"

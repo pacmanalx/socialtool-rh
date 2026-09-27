@@ -47,9 +47,9 @@ sequenceDiagram
 
     Colaborador->>React: Digita publicação e seleciona tags/imagem
     React->>API: POST /api/v1/posts (Payload + Anexos)
-    API->>API: Valida Tenant, Moderação de Palavras Proibidas
+    API->>API: Valida Permissões, Moderação de Palavras Proibidas
     API->>MySQL: Insere Post na tabela `posts`
-    API->>SignalR: Dispara evento `OnNewPostCreated(postDto)` no grupo do Tenant
+    API->>SignalR: Dispara evento `OnNewPostCreated(postDto)` para as conexões autenticadas
     SignalR-->>React: Notifica clientes conectados em tempo real
     React-->>Colaborador: Exibe novo card no topo do feed sem recarregar a tela
 ```
@@ -59,7 +59,7 @@ sequenceDiagram
 ## 🔒 Regras de Negócio e Moderação
 
 1. **Anti-Trolling e Moderação de Conteúdo**:
-   - Dicionário configurável de palavras proibidas por tenant. Posts contendo termos ofensivos entram em fila de moderação para o RH antes de irem a público.
+   - Dicionário configurável de palavras proibidas pela organização. Posts contendo termos ofensivos entram em fila de moderação para o RH antes de irem a público.
    - Qualquer colaborador pode reportar/denunciar uma publicação. Posts com 3 denúncias são ocultados automaticamente até a revisão do RH.
 2. **Edição e Exclusão**:
    - O autor pode editar o texto até 15 minutos após a publicação (uma tag `(editado)` é exibida).

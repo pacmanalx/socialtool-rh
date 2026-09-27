@@ -54,7 +54,6 @@ O módulo de 1-on-1s profissionaliza as reuniões individuais periódicas (seman
 classDiagram
     class OneOnOneMeeting {
         +Guid Id
-        +Guid TenantId
         +Guid HostUserId
         +Guid GuestUserId
         +DateTime ScheduledAt

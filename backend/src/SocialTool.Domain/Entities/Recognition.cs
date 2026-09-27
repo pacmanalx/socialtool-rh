@@ -2,9 +2,8 @@ using SocialTool.Domain.Common;
 
 namespace SocialTool.Domain.Entities;
 
-public class Recognition : BaseEntity, ITenantEntity
+public class Recognition : BaseEntity
 {
-    public Guid TenantId { get; set; }
     public Guid SenderId { get; set; }
     public Guid ReceiverId { get; set; }
     public Guid CompanyValueId { get; set; }
@@ -14,7 +13,6 @@ public class Recognition : BaseEntity, ITenantEntity
     public string Message { get; set; } = string.Empty;
 
     // Navigations
-    public Tenant Tenant { get; set; } = null!;
     public User Sender { get; set; } = null!;
     public User Receiver { get; set; } = null!;
     public CompanyValue CompanyValue { get; set; } = null!;

@@ -17,18 +17,15 @@ public class FeedController : ControllerBase
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly ICurrentUserService _currentUser;
-    private readonly ITenantContext _tenantContext;
     private readonly IHubContext<SocialFeedHub> _hubContext;
 
     public FeedController(
         ApplicationDbContext dbContext,
         ICurrentUserService currentUser,
-        ITenantContext tenantContext,
         IHubContext<SocialFeedHub> hubContext)
     {
         _dbContext = dbContext;
         _currentUser = currentUser;
-        _tenantContext = tenantContext;
         _hubContext = hubContext;
     }
 
@@ -65,6 +62,12 @@ public class FeedController : ControllerBase
         if (!_currentUser.UserId.HasValue)
             return Unauthorized();
 
+        if (request.Type == PostType.Announcement &&
+            _currentUser.Role is not (nameof(UserRole.HR) or nameof(UserRole.Admin)))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Só o RH e administradores publicam comunicados oficiais." });
+        }
+
         var post = new Post
         {
             AuthorId = _currentUser.UserId.Value,
@@ -86,11 +89,7 @@ public class FeedController : ControllerBase
         var postDto = MapToPostDto(savedPost, _currentUser.UserId);
 
         // Notifica em tempo real via SignalR
-        if (_tenantContext.HasTenant)
-        {
-            await _hubContext.Clients.Group($"tenant_{_tenantContext.TenantId}")
-                .SendAsync("ReceiveNewPost", postDto);
-        }
+        await _hubContext.Clients.All.SendAsync("ReceiveNewPost", postDto);
 
         return Ok(postDto);
     }
@@ -144,11 +143,7 @@ public class FeedController : ControllerBase
 
         var postDto = MapToPostDto(post, userId);
 
-        if (_tenantContext.HasTenant)
-        {
-            await _hubContext.Clients.Group($"tenant_{_tenantContext.TenantId}")
-                .SendAsync("ReceivePostUpdate", postDto);
-        }
+        await _hubContext.Clients.All.SendAsync("ReceivePostUpdate", postDto);
 
         return Ok(postDto);
     }
@@ -189,11 +184,7 @@ public class FeedController : ControllerBase
             comment.CreatedAt
         );
 
-        if (_tenantContext.HasTenant)
-        {
-            await _hubContext.Clients.Group($"tenant_{_tenantContext.TenantId}")
-                .SendAsync("ReceivePostComment", new { PostId = id, Comment = commentDto });
-        }
+        await _hubContext.Clients.All.SendAsync("ReceivePostComment", new { PostId = id, Comment = commentDto });
 
         return Ok(commentDto);
     }

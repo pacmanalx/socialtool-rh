@@ -6,7 +6,6 @@ export type ReactionType = 'Like' | 'Heart' | 'Clap' | 'Rocket' | 'Star' | 'Part
 
 export interface User {
   id: string;
-  tenantId: string;
   name: string;
   email: string;
   jobTitle: string;
@@ -15,15 +14,62 @@ export interface User {
   coinsAvailableToGive: number;
   coinsBalanceToSpend: number;
   departmentName?: string;
+  hasPassword: boolean;
 }
 
-export interface Tenant {
-  id: string;
+export interface Organization {
   name: string;
-  subdomain: string;
   currencyName: string;
   monthlyCoinsQuota: number;
 }
+
+export interface Session {
+  accessToken: string;
+  accessTokenExpiresAt: string;
+  user: User;
+  organization: Organization;
+}
+
+export interface InvitationInfo {
+  name: string;
+  email: string;
+  organizationName: string;
+}
+
+export type AdminUserStatus = 'Invited' | 'Active' | 'Inactive';
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  jobTitle: string;
+  role: UserRole;
+  departmentId?: string;
+  departmentName?: string;
+  status: AdminUserStatus;
+  lastLoginAt?: string;
+  createdAt: string;
+}
+
+export interface DepartmentOption {
+  id: string;
+  name: string;
+}
+
+export interface OrganizationSettings {
+  name: string;
+  currencyName: string;
+  monthlyCoinsQuota: number;
+  googleWorkspaceDomain?: string;
+  googleLoginConfigured: boolean;
+}
+
+export const ROLE_LABELS: Record<UserRole, string> = {
+  Admin: 'Administrador',
+  HR: 'RH',
+  Leader: 'Líder',
+  Employee: 'Colaborador',
+};
 
 export interface RecognitionSummary {
   id: string;

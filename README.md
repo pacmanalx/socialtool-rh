@@ -1,6 +1,6 @@
 # SocialTool RH
 
-> Plataforma opensource de engajamento e gestão de pessoas: rede social interna com reconhecimento contínuo, humor diário, feedback, 1-on-1, OKRs, avaliações 360° e analytics de clima — tudo multi-tenant.
+> Plataforma opensource de engajamento e gestão de pessoas: rede social interna com reconhecimento contínuo, humor diário, feedback, 1-on-1, OKRs, avaliações 360° e analytics de clima. Cada organização instala e configura a sua própria.
 
 ---
 
@@ -31,7 +31,7 @@ flowchart TD
     H <--> AN
 ```
 
-> **Estado atual:** bancada de demonstração da Fase 1 (feed, reconhecimento com SocialCoins, humor diário, login demo). Os demais módulos vivem em `docs/` como especificação — ainda não implementados. Ver [CLAUDE.md](CLAUDE.md) para o mapa real do que existe em código vs. o que está no roadmap.
+> **Estado atual:** Fase 1 (feed, reconhecimento com SocialCoins, humor diário, autenticação com convite por e-mail e login com Google Workspace). Os demais módulos vivem em `docs/` como especificação — ainda não implementados. Ver [CLAUDE.md](CLAUDE.md) para o mapa real do que existe em código vs. o que está no roadmap.
 
 ---
 
@@ -64,9 +64,9 @@ flowchart TD
 git clone https://github.com/pacmanalx/socialtool-rh.git
 cd socialtool-rh
 
-# 2. subir o banco (MySQL 8.4 + Adminer)
+# 2. subir o banco (MySQL 8.4), o Adminer e a caixa de e-mail de desenvolvimento (Mailpit)
 cp .env.example .env
-docker compose up -d db
+docker compose up -d
 
 # 3. backend — migra e semeia na primeira subida
 cd backend
@@ -82,13 +82,54 @@ npm run dev
 # → http://localhost:3000
 ```
 
-**Adminer** (UI web pra inspecionar o banco) sobe em `http://localhost:8080` — servidor `db`, usuário `socialtool`, senha `socialtool_dev`, base `socialtool`.
+- **Adminer** (UI web pra inspecionar o banco) sobe em `http://localhost:8080` — servidor `db`, usuário `socialtool`, senha `socialtool_dev`, base `socialtool`.
+- **Mailpit** (caixa de e-mail de desenvolvimento) sobe em `http://localhost:8025`. Todo convite e toda redefinição de senha enviados localmente caem ali, sem sair para a internet.
+
+> **macOS:** a porta 5000 costuma estar ocupada pelo Receptor AirPlay. Rode o backend em outra porta e aponte o front para ela:
+> `ASPNETCORE_URLS=http://localhost:5100 dotnet run --project src/SocialTool.Api` e `VITE_API_URL=http://localhost:5100 npm run dev`.
 
 ### O que esperar na primeira subida
 
 - O banco é criado e migrado automaticamente.
-- Um tenant demo é semeado com um punhado de usuários. A senha de todos é `123456` (é uma **bancada de demo**, não um modelo de auth para produção).
-- O frontend faz login automático de um usuário demo para agilizar a exploração.
+- Em `Development`, uma organização de exemplo ("Demo Company") é semeado com 5 usuários. Entre com `alexandre.pereira@example.com` (Administrador) ou `juliana.santos@example.com` (RH), senha **`socialtool-dev`**. Esses dados de exemplo **não** são criados fora de `Development`.
+- Não há login automático: a tela inicial é o login.
+
+> Se o seu banco local foi criado por uma versão anterior do projeto (antes da migration única `InitialCreate` atual), ele não migra: recrie do zero com `docker compose down -v && docker compose up -d`.
+
+---
+
+## 🔐 Autenticação e usuários
+
+- **Entrada só por convite.** Administrador ou RH cadastra a pessoa em **Administração → Usuários**; ela recebe um e-mail com um link (válido por 72 h) para criar a senha. Não existe auto-cadastro.
+- **Senha:** mínimo de 10 caracteres, guardada com BCrypt. "Esqueci minha senha" envia um link válido por 60 min; redefinir ou trocar a senha encerra as outras sessões abertas.
+- **Sessão:** access token JWT de 15 min, mantido só em memória no navegador, e refresh token rotativo em cookie `httpOnly` + `SameSite=Strict` (14 dias). Se um refresh token já usado for reapresentado, todas as sessões da pessoa são derrubadas.
+- **Papéis:** Administrador, RH, Líder e Colaborador. RH convida pessoas e edita cadastros; mudar papel, desativar e reativar contas é exclusivo do Administrador. Desativar corta o acesso imediatamente.
+
+### Login com Google Workspace (opcional)
+
+1. No [Google Cloud Console](https://console.cloud.google.com/apis/credentials), crie um **ID do cliente OAuth** do tipo *Aplicativo da Web* e adicione a URL do front (ex.: `http://localhost:3000`) em **Origens JavaScript autorizadas**.
+2. Informe o Client ID ao backend: `Auth__Google__ClientId=<seu-client-id>` (variável de ambiente) ou `Auth:Google:ClientId` em `appsettings.Development.json`.
+3. Como administrador, em **Administração → Usuários → Configurações da organização**, preencha o domínio Google Workspace (ex.: `empresa.com.br`).
+
+O Google só autentica quem **já foi convidado** e tem conta nesse domínio. Contas pessoais (`@gmail.com`) ou de outros domínios são recusadas.
+
+### Colocando no ar (primeiro administrador)
+
+Cada instalação atende **uma organização**. Fora de `Development` não há dados de exemplo: na primeira subida, com o banco vazio, a organização e o primeiro administrador nascem da configuração `Bootstrap`:
+
+```bash
+Bootstrap__OrganizationName="Minha Empresa"
+Bootstrap__AdminName="Nome do Admin"
+Bootstrap__AdminEmail="admin@minhaempresa.com.br"
+Bootstrap__GoogleWorkspaceDomain="minhaempresa.com.br"   # opcional
+```
+
+O administrador recebe um convite por e-mail e, depois de entrar, ajusta nome, moeda e cota mensal em **Configurações da organização**. Se o e-mail falhar, use "Esqueci minha senha" com o mesmo endereço. Antes de subir fora de `Development`, configure também:
+
+- `Jwt__SecretKey`: segredo próprio com pelo menos 32 bytes. O backend **se recusa a subir** com o valor de exemplo.
+- `Email__Smtp__Host`, `Email__Smtp__Port`, `Email__Smtp__User`, `Email__Smtp__Password`, `Email__FromAddress`: o servidor SMTP real.
+- `App__PublicUrl`: a URL pública do front, usada nos links dos e-mails.
+- `Cors__AllowedOrigins__0`: só se o front for servido de outra origem que não a da API.
 
 ---
 
@@ -96,7 +137,7 @@ npm run dev
 
 A documentação está em [`docs/`](docs/):
 
-1. 📄 [**01. Visão Geral e Negócio**](docs/01-visao-geral.md) — Personas, dores, modelo SaaS multi-tenant, proposta de valor.
+1. 📄 [**01. Visão Geral e Negócio**](docs/01-visao-geral.md) — Personas, dores, modelo de distribuição, proposta de valor.
 2. 🏛️ [**02. Arquitetura Técnica**](docs/02-arquitetura-tecnica.md) — Clean Architecture, CQRS, multi-tenancy, SignalR e organização do frontend.
 3. 📦 **03. Especificações dos Módulos Funcionais**:
    - 📢 [Feed Social & Celebrações](docs/03-modulos-funcionais/01-feed-social-e-celebracoes.md)
@@ -105,7 +146,7 @@ A documentação está em [`docs/`](docs/):
    - 📊 [Pesquisas de Clima, Humor & eNPS](docs/03-modulos-funcionais/04-pesquisas-clima-enps.md)
    - 🎯 [Gestão de OKRs & Metas](docs/03-modulos-funcionais/05-okrs-e-metas.md)
    - 🌟 [Avaliação de Desempenho & Avaliação 360°](docs/03-modulos-funcionais/06-avaliacao-desempenho-360.md)
-4. 🗄️ [**04. Modelo de Dados Relacional (MySQL)**](docs/04-modelo-dados-mysql.md) — DDLs, tabelas principais, relacionamentos, isolamento por `tenant_id` e índices.
+4. 🗄️ [**04. Modelo de Dados Relacional (MySQL)**](docs/04-modelo-dados-mysql.md) — DDLs, tabelas principais, relacionamentos e índices.
 5. 🛡️ [**05. Segurança, RBAC & Conformidade LGPD**](docs/05-seguranca-lgpd-permissoes.md) — Níveis de permissão, política de privacidade, criptografia e anonimização.
 6. 🚀 [**06. Roadmap e Fases de Implementação**](docs/06-roadmap-implementacao.md) — MVP, Fase 2 (Engajamento Avançado) e Fase 3 (Analytics & Inteligência Preditiva).
 7. 🔍 [**07. Análise Estrutural de Plataforma de Referência**](docs/07-analise-plataforma-referencia.md) — Estudo de arquitetura de informação, widgets, humor de 5 níveis, pesquisas e painel de desengajados.
@@ -122,7 +163,7 @@ socialtool-rh/
 │   └── src/
 │       ├── SocialTool.Api/            # controllers, DTOs, hubs, middleware, seed
 │       ├── SocialTool.Application/    # interfaces (casca — sem handlers/CQRS)
-│       ├── SocialTool.Domain/         # entidades, enums, ITenantEntity
+│       ├── SocialTool.Domain/         # entidades e enums
 │       └── SocialTool.Infrastructure/ # ApplicationDbContext, migrations, serviços
 ├── frontend/
 │   ├── public/                        # favicon, sprite de ícones

@@ -7,108 +7,71 @@ namespace SocialTool.Infrastructure.Persistence;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(ApplicationDbContext context, IPasswordHasher passwordHasher)
-    {
-        // Garante aplicação de migrations
-        await context.Database.MigrateAsync();
+    // Valores de cultura com que toda organização começa; o RH pode editá-los depois.
+    public static List<CompanyValue> DefaultCompanyValues() =>
+    [
+        new() { Title = "Espírito de Equipe", Description = "Crescemos juntos com apoio mútuo, empatia e colaboração contínua.", Icon = "Users", IsActive = true },
+        new() { Title = "Inovação & Agilidade", Description = "Buscamos novas soluções descomplicadas para surpreender nossos clientes.", Icon = "Zap", IsActive = true },
+        new() { Title = "Foco em Resultados", Description = "Compromisso com excelência e entrega consistente de valor.", Icon = "TrendingUp", IsActive = true },
+        new() { Title = "Foco nas Pessoas", Description = "Cuidamos das relações humanas e reconhecemos cada conquista.", Icon = "Heart", IsActive = true },
+    ];
 
-        // Se já existe tenant demo, não duplica
-        if (await context.Tenants.IgnoreQueryFilters().AnyAsync(t => t.Subdomain == "demo"))
+    // Garante a linha única da organização (e os valores de cultura padrão) na primeira subida.
+    public static async Task EnsureOrganizationAsync(ApplicationDbContext context, string name)
+    {
+        if (await context.Organizations.AnyAsync())
+            return;
+
+        context.Organizations.Add(new Organization { Name = name });
+        if (!await context.CompanyValues.AnyAsync())
+            context.CompanyValues.AddRange(DefaultCompanyValues());
+        await context.SaveChangesAsync();
+    }
+
+    // Dados de exemplo para desenvolvimento local. Só roda numa instalação sem nenhum usuário.
+    public static async Task SeedSampleDataAsync(ApplicationDbContext context, IPasswordHasher passwordHasher, string samplePassword)
+    {
+        if (await context.Users.AnyAsync())
         {
             return;
         }
 
-        var tenantId = Guid.NewGuid();
-        var tenant = new Tenant
-        {
-            Id = tenantId,
-            Name = "Demo Company",
-            Subdomain = "demo",
-            CurrencyName = "SocialCoins",
-            MonthlyCoinsQuota = 100,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        context.Tenants.Add(tenant);
+        await EnsureOrganizationAsync(context, "Demo Company");
+        var valEquipe = await context.CompanyValues.FirstOrDefaultAsync(v => v.Title == "Espírito de Equipe")
+            ?? await context.CompanyValues.FirstAsync();
 
         // Departamentos
         var deptTi = new Department
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             Name = "Tecnologia & Inovação",
             CreatedAt = DateTime.UtcNow
         };
         var deptRh = new Department
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             Name = "Gente & Gestão (RH)",
             CreatedAt = DateTime.UtcNow
         };
         var deptVendas = new Department
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             Name = "Comercial & Expansão",
             CreatedAt = DateTime.UtcNow
         };
         context.Departments.AddRange(deptTi, deptRh, deptVendas);
 
-        // Valores da Empresa
-        var valEquipe = new CompanyValue
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            Title = "Espírito de Equipe",
-            Description = "Crescemos juntos com apoio mútuo, empatia e colaboração contínua.",
-            Icon = "Users",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        var valInovacao = new CompanyValue
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            Title = "Inovação & Agilidade",
-            Description = "Buscamos novas soluções descomplicadas para surpreender nossos consultores.",
-            Icon = "Zap",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        var valResultados = new CompanyValue
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            Title = "Foco em Resultados",
-            Description = "Compromisso com excelência e entrega consistente de valor.",
-            Icon = "TrendingUp",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        var valCliente = new CompanyValue
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            Title = "Foco nas Pessoas",
-            Description = "Cuidamos das relações humanas e reconhecemos cada conquista.",
-            Icon = "Heart",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        context.CompanyValues.AddRange(valEquipe, valInovacao, valResultados, valCliente);
-
         // Usuários
-        var defaultPasswordHash = passwordHasher.HashPassword("123456");
+        var defaultPasswordHash = passwordHasher.HashPassword(samplePassword);
 
         var userAdmin = new User
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             DepartmentId = deptTi.Id,
             Name = "Alexandre Pereira",
             Email = "alexandre.pereira@example.com",
             PasswordHash = defaultPasswordHash,
+            ActivatedAt = DateTime.UtcNow,
             JobTitle = "Tech Lead & Arquiteto",
             Role = UserRole.Admin,
             CoinsAvailableToGive = 100,
@@ -123,11 +86,11 @@ public static class DbInitializer
         var userRh = new User
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             DepartmentId = deptRh.Id,
             Name = "Juliana Santos",
             Email = "juliana.santos@example.com",
             PasswordHash = defaultPasswordHash,
+            ActivatedAt = DateTime.UtcNow,
             JobTitle = "Gerente de DHO & Cultura",
             Role = UserRole.HR,
             CoinsAvailableToGive = 100,
@@ -142,11 +105,11 @@ public static class DbInitializer
         var userGestor = new User
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             DepartmentId = deptTi.Id,
             Name = "Carlos Andrade",
             Email = "carlos.andrade@example.com",
             PasswordHash = defaultPasswordHash,
+            ActivatedAt = DateTime.UtcNow,
             JobTitle = "Coordenador de Engenharia",
             Role = UserRole.Leader,
             CoinsAvailableToGive = 70,
@@ -160,12 +123,12 @@ public static class DbInitializer
         var userDevFrontend = new User
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             DepartmentId = deptTi.Id,
             ManagerId = userGestor.Id,
             Name = "Mariana Costa",
             Email = "mariana.costa@example.com",
             PasswordHash = defaultPasswordHash,
+            ActivatedAt = DateTime.UtcNow,
             JobTitle = "Desenvolvedora Frontend Pleno",
             Role = UserRole.Employee,
             CoinsAvailableToGive = 100,
@@ -180,12 +143,12 @@ public static class DbInitializer
         var userDevBackend = new User
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             DepartmentId = deptTi.Id,
             ManagerId = userGestor.Id,
             Name = "Lucas Fernandes",
             Email = "lucas.fernandes@example.com",
             PasswordHash = defaultPasswordHash,
+            ActivatedAt = DateTime.UtcNow,
             JobTitle = "Desenvolvedor Backend .NET",
             Role = UserRole.Employee,
             CoinsAvailableToGive = 100,
@@ -207,7 +170,6 @@ public static class DbInitializer
         var postAnuncio = new Post
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             AuthorId = userRh.Id,
             Type = PostType.Announcement,
             Title = "🚀 Bem-vindos ao SocialTool RH!",
@@ -234,7 +196,6 @@ public static class DbInitializer
         var postReconhecimento = new Post
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             AuthorId = userGestor.Id,
             Type = PostType.Recognition,
             Content = "Mariana mandou muito bem na refatoração da nova interface do módulo de avaliações! Comunicação impecável e velocidade recorde na entrega. Obrigado pela dedicação!",
@@ -244,7 +205,6 @@ public static class DbInitializer
         var recognition = new Recognition
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             SenderId = userGestor.Id,
             ReceiverId = userDevFrontend.Id,
             CompanyValueId = valEquipe.Id,
@@ -262,7 +222,6 @@ public static class DbInitializer
         var postCeleb = new Post
         {
             Id = Guid.NewGuid(),
-            TenantId = tenantId,
             AuthorId = userRh.Id,
             Type = PostType.Celebration,
             Title = "🎉 3 anos de casa!",

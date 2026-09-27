@@ -2,15 +2,29 @@ namespace SocialTool.Api.DTOs;
 
 public record LoginRequest(string Email, string Password);
 
-public record LoginResponse(
-    string Token,
+public record GoogleLoginRequest(string Credential);
+
+public record AcceptInvitationRequest(string Token, string Password);
+
+public record ForgotPasswordRequest(string Email);
+
+public record ResetPasswordRequest(string Token, string Password);
+
+public record ChangePasswordRequest(string? CurrentPassword, string NewPassword);
+
+public record AuthConfigDto(string? GoogleClientId);
+
+public record InvitationInfoDto(string Name, string Email, string OrganizationName);
+
+public record SessionResponse(
+    string AccessToken,
+    DateTime AccessTokenExpiresAt,
     UserProfileDto User,
-    TenantDto Tenant
+    OrganizationDto Organization
 );
 
 public record UserProfileDto(
     Guid Id,
-    Guid TenantId,
     string Name,
     string Email,
     string JobTitle,
@@ -18,13 +32,12 @@ public record UserProfileDto(
     string? AvatarUrl,
     int CoinsAvailableToGive,
     int CoinsBalanceToSpend,
-    string? DepartmentName
+    string? DepartmentName,
+    bool HasPassword
 );
 
-public record TenantDto(
-    Guid Id,
+public record OrganizationDto(
     string Name,
-    string Subdomain,
     string CurrencyName,
     int MonthlyCoinsQuota
 );

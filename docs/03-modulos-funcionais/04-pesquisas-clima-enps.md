@@ -79,5 +79,5 @@ Para assegurar a verdade e proteger os colaboradores de retaliações:
    - Um líder ou o RH **nunca** pode visualizar o resultado segmentado de um time que tenha menos de **4 respondentes** na amostragem.
    - Caso um time tenha 3 pessoas, as respostas são consolidadas apenas no nível do departamento imediatamente superior.
 2. **Desassociação de Identidade no Banco de Dados**:
-   - As respostas de pesquisas anônimas não guardam chave estrangeira para o `user_id`. O registro contém apenas `tenant_id`, `survey_id`, dados demográficos consolidados (ex: `department_id`, faixa de tempo de casa) e as notas/textos.
+   - As respostas de pesquisas anônimas não guardam chave estrangeira para o `user_id`. O registro contém apenas `survey_id`, dados demográficos consolidados (ex: `department_id`, faixa de tempo de casa) e as notas/textos.
    - O controle de "quem já respondeu" é mantido em uma tabela separada de tickets únicos (`SurveyParticipation`), que apenas registra se o usuário completou a pesquisa, sem ligar seu ID à resposta enviada.

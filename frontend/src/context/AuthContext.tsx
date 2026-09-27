@@ -1,104 +1,92 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { api, setAuthToken } from '../services/api';
-import type { Tenant, User } from '../types';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { api, refreshSession, setAccessToken, setSessionHandlers } from '../services/api';
+import type { Organization, Session, User } from '../types';
+
+type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
 interface AuthContextType {
+  status: AuthStatus;
   user: User | null;
-  tenant: Tenant | null;
-  demoUsers: any[];
-  isLoading: boolean;
-  switchUser: (email: string) => Promise<void>;
+  organization: Organization | null;
+  googleClientId: string | null;
+  applySession: (session: Session) => void;
+  login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<User | null>(null);
-  const [tenant, setTenant] = useState<Tenant | null>(null);
-  const [demoUsers, setDemoUsers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [googleClientId, setGoogleClientId] = useState<string | null>(null);
 
-  const initAuth = async () => {
-    try {
-      setIsLoading(true);
-      // Carrega lista de usuários de demonstração
-      const demos = await api.auth.getDemoUsers().catch(() => []);
-      setDemoUsers(demos);
+  const applySession = useCallback((session: Session) => {
+    setAccessToken(session.accessToken);
+    setUser(session.user);
+    setOrganization(session.organization);
+    setStatus('authenticated');
+  }, []);
 
-      // Tenta login com o usuário administrador demo se não houver usuário logado
-      const token = localStorage.getItem('socialtool_token');
-      if (token) {
-        try {
-          const profile = await api.auth.getMe();
-          setUser(profile);
-          setTenant({
-            id: profile.tenantId,
-            name: 'Demo Company',
-            subdomain: 'demo',
-            currencyName: 'SocialCoins',
-            monthlyCoinsQuota: 100,
-          });
-        } catch {
-          // Token expirou ou inválido — refaz login automático como administrador demo
-          await performLogin('alexandre.pereira@example.com');
-        }
+  const clearSession = useCallback(() => {
+    setAccessToken(null);
+    setUser(null);
+    setOrganization(null);
+    setStatus('anonymous');
+  }, []);
+
+  useEffect(() => {
+    setSessionHandlers({
+      onRefreshed: (session) => {
+        setUser(session.user);
+        setOrganization(session.organization);
+      },
+      onExpired: clearSession,
+    });
+
+    // A sessão sobrevive ao recarregar a página pelo cookie de refresh; sem cookie válido, cai no login.
+    Promise.all([api.auth.getConfig().catch(() => null), refreshSession()]).then(([config, session]) => {
+      setGoogleClientId(config?.googleClientId ?? null);
+      if (session) {
+        applySession(session);
       } else {
-        await performLogin('alexandre.pereira@example.com');
+        clearSession();
       }
-    } catch (err) {
-      console.error('Erro na inicialização da autenticação:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    });
+  }, [applySession, clearSession]);
 
-  const performLogin = async (email: string) => {
-    const data = await api.auth.login(email, '123456');
-    setUser(data.user);
-    setTenant(data.tenant);
-  };
+  const login = useCallback(
+    async (email: string, password: string) => applySession(await api.auth.login(email, password)),
+    [applySession],
+  );
 
-  const switchUser = async (email: string) => {
-    setIsLoading(true);
+  const loginWithGoogle = useCallback(
+    async (credential: string) => applySession(await api.auth.loginWithGoogle(credential)),
+    [applySession],
+  );
+
+  const logout = useCallback(async () => {
     try {
-      await performLogin(email);
+      await api.auth.logout();
     } finally {
-      setIsLoading(false);
+      clearSession();
     }
-  };
+  }, [clearSession]);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
-      const updated = await api.auth.getMe();
-      setUser(updated);
+      setUser(await api.auth.getMe());
     } catch (err) {
       console.error('Erro ao atualizar usuário:', err);
     }
-  };
-
-  const logout = () => {
-    setAuthToken(null);
-    setUser(null);
-    setTenant(null);
-  };
-
-  useEffect(() => {
-    initAuth();
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        tenant,
-        demoUsers,
-        isLoading,
-        switchUser,
-        refreshUser,
-        logout,
-      }}
+      value={{ status, user, organization, googleClientId, applySession, login, loginWithGoogle, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using SocialTool.Application.Common.Interfaces;
 using SocialTool.Domain.Common;
 using SocialTool.Domain.Entities;
 
@@ -7,16 +6,11 @@ namespace SocialTool.Infrastructure.Persistence;
 
 public class ApplicationDbContext : DbContext
 {
-    private readonly ITenantContext _tenantContext;
-
-    public ApplicationDbContext(
-        DbContextOptions<ApplicationDbContext> options,
-        ITenantContext tenantContext) : base(options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
-        _tenantContext = tenantContext;
     }
 
-    public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<User> Users => Set<User>();
     public DbSet<CompanyValue> CompanyValues => Set<CompanyValue>();
@@ -29,43 +23,27 @@ public class ApplicationDbContext : DbContext
     public DbSet<OneOnOne> OneOnOnes => Set<OneOnOne>();
     public DbSet<OneOnOnePoint> OneOnOnePoints => Set<OneOnOnePoint>();
     public DbSet<OneOnOneAction> OneOnOneActions => Set<OneOnOneAction>();
+    public DbSet<UserToken> UserTokens => Set<UserToken>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Global Multi-tenant Query Filters
-        modelBuilder.Entity<Department>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-        modelBuilder.Entity<User>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-        modelBuilder.Entity<CompanyValue>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-        modelBuilder.Entity<Post>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-        modelBuilder.Entity<Recognition>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-        modelBuilder.Entity<DailyMood>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-        modelBuilder.Entity<Feedback>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-        modelBuilder.Entity<OneOnOne>().HasQueryFilter(e => !_tenantContext.HasTenant || e.TenantId == _tenantContext.TenantId);
-
-        // Tenant Configuration
-        modelBuilder.Entity<Tenant>(entity =>
+        modelBuilder.Entity<Organization>(entity =>
         {
-            entity.ToTable("tenants");
-            entity.HasIndex(t => t.Subdomain).IsUnique();
-            entity.Property(t => t.Name).HasMaxLength(150).IsRequired();
-            entity.Property(t => t.Subdomain).HasMaxLength(60).IsRequired();
-            entity.Property(t => t.CurrencyName).HasMaxLength(50).HasDefaultValue("SocialCoins");
-            entity.Property(t => t.MonthlyCoinsQuota).HasDefaultValue(100);
+            entity.ToTable("organization");
+            entity.Property(o => o.Name).HasMaxLength(150).IsRequired();
+            entity.Property(o => o.CurrencyName).HasMaxLength(50).HasDefaultValue("SocialCoins");
+            entity.Property(o => o.MonthlyCoinsQuota).HasDefaultValue(100);
+            entity.Property(o => o.GoogleWorkspaceDomain).HasMaxLength(200);
         });
 
         // Department Configuration
         modelBuilder.Entity<Department>(entity =>
         {
             entity.ToTable("departments");
-            entity.HasIndex(d => d.TenantId);
             entity.Property(d => d.Name).HasMaxLength(100).IsRequired();
-
-            entity.HasOne(d => d.Tenant)
-                .WithMany(t => t.Departments)
-                .HasForeignKey(d => d.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(d => d.ParentDepartment)
                 .WithMany(d => d.SubDepartments)
@@ -82,16 +60,14 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("users");
-            entity.HasIndex(u => new { u.TenantId, u.Email }).IsUnique();
+            entity.HasIndex(u => u.Email).IsUnique();
+            entity.HasIndex(u => u.GoogleSubject).IsUnique();
             entity.Property(u => u.Name).HasMaxLength(150).IsRequired();
             entity.Property(u => u.Email).HasMaxLength(200).IsRequired();
+            entity.Property(u => u.PasswordHash).HasMaxLength(500);
+            entity.Property(u => u.GoogleSubject).HasMaxLength(100);
             entity.Property(u => u.JobTitle).HasMaxLength(100).IsRequired();
             entity.Property(u => u.Role).HasConversion<string>().HasMaxLength(30);
-
-            entity.HasOne(u => u.Tenant)
-                .WithMany(t => t.Users)
-                .HasForeignKey(u => u.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(u => u.Department)
                 .WithMany(d => d.Users)
@@ -108,28 +84,17 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<CompanyValue>(entity =>
         {
             entity.ToTable("company_values");
-            entity.HasIndex(v => v.TenantId);
             entity.Property(v => v.Title).HasMaxLength(100).IsRequired();
             entity.Property(v => v.Icon).HasMaxLength(50).HasDefaultValue("Award");
-
-            entity.HasOne(v => v.Tenant)
-                .WithMany(t => t.CompanyValues)
-                .HasForeignKey(v => v.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Post Configuration
         modelBuilder.Entity<Post>(entity =>
         {
             entity.ToTable("posts");
-            entity.HasIndex(p => new { p.TenantId, p.CreatedAt });
+            entity.HasIndex(p => p.CreatedAt);
             entity.Property(p => p.Type).HasConversion<string>().HasMaxLength(30);
             entity.Property(p => p.Title).HasMaxLength(200);
-
-            entity.HasOne(p => p.Tenant)
-                .WithMany(t => t.Posts)
-                .HasForeignKey(p => p.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(p => p.Author)
                 .WithMany(u => u.Posts)
@@ -176,12 +141,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Recognition>(entity =>
         {
             entity.ToTable("recognitions");
-            entity.HasIndex(r => new { r.TenantId, r.CreatedAt });
-
-            entity.HasOne(r => r.Tenant)
-                .WithMany()
-                .HasForeignKey(r => r.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(r => r.CreatedAt);
 
             entity.HasOne(r => r.Sender)
                 .WithMany(u => u.RecognitionsSent)
@@ -208,12 +168,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<DailyMood>(entity =>
         {
             entity.ToTable("daily_moods");
-            entity.HasIndex(m => new { m.TenantId, m.UserId, m.Date }).IsUnique();
-
-            entity.HasOne(m => m.Tenant)
-                .WithMany()
-                .HasForeignKey(m => m.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(m => new { m.UserId, m.Date }).IsUnique();
 
             entity.HasOne(m => m.User)
                 .WithMany(u => u.DailyMoods)
@@ -225,14 +180,9 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Feedback>(entity =>
         {
             entity.ToTable("feedbacks");
-            entity.HasIndex(f => new { f.TenantId, f.CreatedAt });
+            entity.HasIndex(f => f.CreatedAt);
             entity.Property(f => f.Visibility).HasConversion<string>().HasMaxLength(30);
             entity.Property(f => f.Status).HasConversion<string>().HasMaxLength(30);
-
-            entity.HasOne(f => f.Tenant)
-                .WithMany()
-                .HasForeignKey(f => f.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(f => f.Sender)
                 .WithMany()
@@ -249,13 +199,8 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<OneOnOne>(entity =>
         {
             entity.ToTable("one_on_ones");
-            entity.HasIndex(o => new { o.TenantId, o.ScheduledAt });
+            entity.HasIndex(o => o.ScheduledAt);
             entity.Property(o => o.Status).HasConversion<string>().HasMaxLength(30);
-
-            entity.HasOne(o => o.Tenant)
-                .WithMany()
-                .HasForeignKey(o => o.TenantId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(o => o.Leader)
                 .WithMany()
@@ -299,6 +244,35 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(a => a.AssigneeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<UserToken>(entity =>
+        {
+            entity.ToTable("user_tokens");
+            entity.HasIndex(t => t.TokenHash).IsUnique();
+            entity.HasIndex(t => new { t.UserId, t.Purpose });
+            entity.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(t => t.Purpose).HasConversion<string>().HasMaxLength(30);
+
+            entity.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_tokens");
+            entity.HasIndex(t => t.TokenHash).IsUnique();
+            entity.HasIndex(t => t.UserId);
+            entity.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(t => t.CreatedByIp).HasMaxLength(64);
+            entity.Property(t => t.UserAgent).HasMaxLength(300);
+
+            entity.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -311,11 +285,6 @@ public class ApplicationDbContext : DbContext
                     entry.Entity.Id = Guid.NewGuid();
 
                 entry.Entity.CreatedAt = DateTime.UtcNow;
-
-                if (entry.Entity is ITenantEntity tenantEntity && tenantEntity.TenantId == Guid.Empty && _tenantContext.HasTenant)
-                {
-                    tenantEntity.TenantId = _tenantContext.TenantId!.Value;
-                }
             }
             else if (entry.State == EntityState.Modified)
             {
@@ -325,4 +294,11 @@ public class ApplicationDbContext : DbContext
 
         return base.SaveChangesAsync(cancellationToken);
     }
+}
+
+public static class OrganizationQueries
+{
+    // A instalação tem exatamente uma organização, criada na primeira subida.
+    public static Task<Organization> GetOrganizationAsync(this ApplicationDbContext db, CancellationToken ct = default) =>
+        db.Organizations.OrderBy(o => o.CreatedAt).FirstAsync(ct);
 }

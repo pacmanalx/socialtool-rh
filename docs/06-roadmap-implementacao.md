@@ -10,7 +10,7 @@ gantt
     dateFormat  YYYY-MM-DD
     section Fase 1: MVP Core
     Scaffold .NET 10 + React + MySQL   :a1, 2026-10-01, 14d
-    Multi-tenant, Auth & Usuários       :a2, after a1, 14d
+    Auth & Usuários                     :a2, after a1, 14d
     Feed Social & Celebrações (SignalR) :a3, after a2, 21d
     Reconhecimento & SocialCoins        :a4, after a3, 21d
     Feedback Contínuo & 1-on-1s         :a5, after a4, 21d
@@ -32,7 +32,7 @@ gantt
 - **Objetivo**: Fazer o colaborador acessar a plataforma diariamente e sentir impacto imediato na comunicação e reconhecimento.
 - **Entregas**:
   - Infraestrutura básica (.NET 10 Web API, React + Vite + Tailwind, MySQL 8.4).
-  - Autenticação JWT com isolamento multi-tenant (`TenantId`).
+  - Autenticação JWT, convite por e-mail e login com Google Workspace.
   - Organograma de departamentos e perfis de colaboradores.
   - **Feed Social em tempo real**:
     - Criação de postagens, reações ricas e comentários.

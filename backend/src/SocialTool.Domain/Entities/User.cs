@@ -3,15 +3,18 @@ using SocialTool.Domain.Enums;
 
 namespace SocialTool.Domain.Entities;
 
-public class User : BaseEntity, ITenantEntity
+public class User : BaseEntity
 {
-    public Guid TenantId { get; set; }
     public Guid? DepartmentId { get; set; }
     public Guid? ManagerId { get; set; }
 
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; }
+    public string? GoogleSubject { get; set; }
+    // Null enquanto o convite não foi aceito (nem por senha, nem por Google).
+    public DateTime? ActivatedAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
     public string JobTitle { get; set; } = string.Empty;
     public DateOnly? BirthDate { get; set; }
     public DateOnly HireDate { get; set; }
@@ -23,7 +26,6 @@ public class User : BaseEntity, ITenantEntity
     public bool IsActive { get; set; } = true;
 
     // Navigations
-    public Tenant Tenant { get; set; } = null!;
     public Department? Department { get; set; }
     public User? Manager { get; set; }
     public ICollection<User> Subordinates { get; set; } = new List<User>();

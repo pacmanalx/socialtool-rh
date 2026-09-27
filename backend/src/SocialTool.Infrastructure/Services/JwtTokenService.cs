@@ -17,37 +17,35 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
     }
 
-    public string GenerateToken(User user, string tenantSubdomain)
+    public AccessToken GenerateAccessToken(User user)
     {
-        var secretKey = _configuration["Jwt:SecretKey"] ?? "CHANGE-ME-IN-PRODUCTION-use-a-32-byte-random-secret-not-this";
+        var secretKey = _configuration["Jwt:SecretKey"]
+            ?? throw new InvalidOperationException("Jwt:SecretKey não configurado.");
         var issuer = _configuration["Jwt:Issuer"] ?? "SocialToolRh";
         var audience = _configuration["Jwt:Audience"] ?? "SocialToolRhClients";
-        var expirationHours = int.TryParse(_configuration["Jwt:ExpirationHours"], out var h) ? h : 24;
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(secretKey);
+        var minutes = int.TryParse(_configuration["Jwt:AccessTokenMinutes"], out var m) ? m : 15;
+        var expiresAt = DateTime.UtcNow.AddMinutes(minutes);
 
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, user.Role.ToString()),
-            new("TenantId", user.TenantId.ToString()),
-            new("Subdomain", tenantSubdomain),
-            new("JobTitle", user.JobTitle)
+            new(ClaimTypes.Role, user.Role.ToString())
         };
 
-        var tokenDescriptor = new SecurityTokenDescriptor
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(expirationHours),
+            Expires = expiresAt,
             Issuer = issuer,
             Audience = audience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                SecurityAlgorithms.HmacSha256Signature)
+        });
 
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        return new AccessToken(tokenHandler.WriteToken(token), expiresAt);
     }
 }

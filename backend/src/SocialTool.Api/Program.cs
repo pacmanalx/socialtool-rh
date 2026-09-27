@@ -1,7 +1,10 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SocialTool.Api.Controllers;
 using SocialTool.Api.Hubs;
 using SocialTool.Api.Middlewares;
 using SocialTool.Api.Services;
@@ -11,9 +14,14 @@ using SocialTool.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do MySQL com Pomelo EF Core
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=localhost;Port=3306;Database=socialtool;User=socialtool;Password=socialtool_dev;CharSet=utf8mb4;";
+    ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection não configurada.");
+
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"];
+if (string.IsNullOrWhiteSpace(jwtSecretKey) || Encoding.UTF8.GetByteCount(jwtSecretKey) < 32)
+    throw new InvalidOperationException("Jwt:SecretKey precisa ter pelo menos 32 bytes.");
+if (!builder.Environment.IsDevelopment() && jwtSecretKey.StartsWith("CHANGE-ME", StringComparison.Ordinal))
+    throw new InvalidOperationException("Troque Jwt:SecretKey por um segredo próprio antes de rodar fora de Development.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -23,17 +31,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     });
 });
 
-// Injeção de dependências do escopo multi-tenant e segurança
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-
-// Configuração de Autenticação JWT
-var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] ?? "CHANGE-ME-IN-PRODUCTION-use-a-32-byte-random-secret-not-this";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SocialToolRh";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SocialToolRhClients";
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<AccountTokenService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -44,65 +48,86 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey))
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "SocialToolRh",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "SocialToolRhClients",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ClockSkew = TimeSpan.FromSeconds(30)
         };
 
-        // Permite envio do token JWT via QueryString para WebSockets / SignalR
+        // WebSockets não mandam header Authorization: o SignalR passa o token na query string.
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
-                {
+                if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
                     context.Token = accessToken;
-                }
                 return Task.CompletedTask;
             }
         };
     });
 
-builder.Services.AddAuthorization();
+// Tudo exige login por padrão; endpoints públicos são marcados com [AllowAnonymous].
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+});
 
-// Controllers e Serialização JSON
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (context, cancellationToken) => new ValueTask(context.HttpContext.Response.WriteAsJsonAsync(
+        new { message = "Muitas tentativas. Aguarde um minuto e tente de novo." }, cancellationToken));
+    options.AddPolicy(AuthController.RateLimitPolicy, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
-// SignalR Realtime Hub
 builder.Services.AddSignalR();
 
-// CORS para permitir SPA React
-builder.Services.AddCors(options =>
+// Em desenvolvimento o front chega pelo proxy do Vite (mesma origem) e CORS não é necessário.
+// Só libere origens explícitas: com AllowCredentials, uma origem aberta entregaria a sessão a qualquer site.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+if (allowedOrigins.Length > 0)
 {
-    options.AddDefaultPolicy(policy =>
+    builder.Services.AddCors(options =>
     {
-        policy.SetIsOriginAllowed(_ => true)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        options.AddDefaultPolicy(policy => policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
     });
-});
+}
 
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Executa Migrations e Seed inicial de dados
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var db = services.GetRequiredService<ApplicationDbContext>();
-        var hasher = services.GetRequiredService<IPasswordHasher>();
-        await DbInitializer.SeedAsync(db, hasher);
-        app.Logger.LogInformation("Banco de dados sincronizado e dados iniciais criados com sucesso.");
+        await db.Database.MigrateAsync();
+
+        if (app.Environment.IsDevelopment() && app.Configuration.GetValue("Seed:SampleData", false))
+        {
+            var samplePassword = app.Configuration["Seed:SamplePassword"]
+                ?? throw new InvalidOperationException("Seed:SamplePassword não configurada.");
+            await DbInitializer.SeedSampleDataAsync(db, services.GetRequiredService<IPasswordHasher>(), samplePassword);
+        }
+
+        await OrganizationBootstrapper.RunAsync(services, app.Configuration, app.Logger);
+        app.Logger.LogInformation("Banco de dados sincronizado.");
     }
     catch (Exception ex)
     {
@@ -112,15 +137,17 @@ using (var scope = app.Services.CreateScope())
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
 }
 
-app.UseCors();
-
-// Middleware de identificação do Tenant
-app.UseMiddleware<TenantResolutionMiddleware>();
+if (allowedOrigins.Length > 0)
+{
+    app.UseCors();
+}
 
 app.UseAuthentication();
+app.UseMiddleware<ActiveUserMiddleware>();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();

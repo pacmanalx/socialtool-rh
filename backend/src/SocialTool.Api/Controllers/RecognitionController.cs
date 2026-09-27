@@ -17,18 +17,15 @@ public class RecognitionController : ControllerBase
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly ICurrentUserService _currentUser;
-    private readonly ITenantContext _tenantContext;
     private readonly IHubContext<SocialFeedHub> _hubContext;
 
     public RecognitionController(
         ApplicationDbContext dbContext,
         ICurrentUserService currentUser,
-        ITenantContext tenantContext,
         IHubContext<SocialFeedHub> hubContext)
     {
         _dbContext = dbContext;
         _currentUser = currentUser;
-        _tenantContext = tenantContext;
         _hubContext = hubContext;
     }
 
@@ -134,11 +131,7 @@ public class RecognitionController : ControllerBase
             new List<PostCommentDto>()
         );
 
-        if (_tenantContext.HasTenant)
-        {
-            await _hubContext.Clients.Group($"tenant_{_tenantContext.TenantId}")
-                .SendAsync("ReceiveNewPost", postDto);
-        }
+        await _hubContext.Clients.All.SendAsync("ReceiveNewPost", postDto);
 
         return Ok(postDto);
     }

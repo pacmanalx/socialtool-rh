@@ -53,16 +53,17 @@ mindmap
 
 ---
 
-## 🏢 Modelo SaaS Multi-Tenant
+## 🏢 Modelo de Distribuição: Software Livre, Uma Instalação por Organização
 
-A plataforma opera sob o modelo **Software as a Service (SaaS) Multi-tenant**:
+A plataforma é **software livre (licença MIT)** e cada organização roda a **sua própria instalação**:
 
-1. **Isolamento Lógico Robusto**: Cada empresa cliente possui seu próprio `tenant_id`, garantindo que colaboradores de uma organização nunca acessem dados de outra.
-2. **Customização por Empresa**:
-   - Logotipo e cores institucionais (white-label leve).
-   - Nome personalizado da moeda corporativa (ex: *FeedCoins*, *Estrelas*, *Pontos de Valor*).
+1. **Dados na casa de quem instala**: o banco, os e-mails e as integrações ficam na infraestrutura da própria organização. Uma instalação atende uma única organização — não existe mistura de dados entre empresas.
+2. **Configuração pela própria organização** (pela interface de administração):
+   - Nome, logotipo e cores institucionais.
+   - Nome personalizado da moeda corporativa (ex: *Estrelas*, *Pontos de Valor*) e cota mensal por pessoa.
    - Definição dos **Valores da Cultura** que guiam os reconhecimentos.
    - Organograma, departamentos, cargos e níveis hierárquicos.
-3. **Planos & Escalabilidade**:
-   - Cobrança baseada no número de colaboradores ativos mensais (Seat-based pricing).
-   - Ativação modular: empresas podem iniciar apenas com Feed + Feedback e posteriormente habilitar OKRs e Avaliação 360°.
+   - Integrações opcionais (e-mail, login e ferramentas de colaboração do Google Workspace).
+3. **Adoção gradual**:
+   - Ativação modular: a organização pode começar com Feed + Reconhecimento e habilitar Feedback, 1-on-1, OKRs e Avaliação 360° conforme amadurece.
+   - Grupos com várias empresas ou marcas podem usar uma instalação por empresa ou uma única instalação com as marcas modeladas como unidades/departamentos.

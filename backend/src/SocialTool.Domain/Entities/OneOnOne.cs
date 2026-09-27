@@ -3,9 +3,8 @@ using SocialTool.Domain.Enums;
 
 namespace SocialTool.Domain.Entities;
 
-public class OneOnOne : BaseEntity, ITenantEntity
+public class OneOnOne : BaseEntity
 {
-    public Guid TenantId { get; set; }
     public Guid LeaderId { get; set; }
     public Guid LedId { get; set; }
     public DateTime ScheduledAt { get; set; }
@@ -14,7 +13,6 @@ public class OneOnOne : BaseEntity, ITenantEntity
     public string? SharedNotes { get; set; }
 
     // Navigations
-    public Tenant Tenant { get; set; } = null!;
     public User Leader { get; set; } = null!;
     public User Led { get; set; } = null!;
 

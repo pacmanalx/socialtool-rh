@@ -15,35 +15,10 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "tenants",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Subdomain = table.Column<string>(type: "varchar(60)", maxLength: 60, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    LogoUrl = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CurrencyName = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, defaultValue: "SocialCoins")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    MonthlyCoinsQuota = table.Column<int>(type: "int", nullable: false, defaultValue: 100),
-                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_tenants", x => x.Id);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "company_values",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Title = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "longtext", nullable: false)
@@ -57,12 +32,29 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_company_values", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_company_values_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "organization",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Name = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LogoUrl = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CurrencyName = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, defaultValue: "SocialCoins")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MonthlyCoinsQuota = table.Column<int>(type: "int", nullable: false, defaultValue: 100),
+                    GoogleWorkspaceDomain = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_organization", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -71,7 +63,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Score = table.Column<int>(type: "int", nullable: false),
                     Note = table.Column<string>(type: "longtext", nullable: true)
@@ -83,12 +74,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_daily_moods", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_daily_moods_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -97,7 +82,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ParentDepartmentId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -114,12 +98,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         principalTable: "departments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_departments_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -128,15 +106,18 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     DepartmentId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     ManagerId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     Name = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Email = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PasswordHash = table.Column<string>(type: "longtext", nullable: false)
+                    PasswordHash = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    GoogleSubject = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ActivatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    LastLoginAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     JobTitle = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
@@ -161,12 +142,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_users_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_users_users_ManagerId",
                         column: x => x.ManagerId,
                         principalTable: "users",
@@ -180,7 +155,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     SenderId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ReceiverId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Content = table.Column<string>(type: "longtext", nullable: false)
@@ -195,12 +169,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_feedbacks", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_feedbacks_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_feedbacks_users_ReceiverId",
                         column: x => x.ReceiverId,
@@ -221,7 +189,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     LeaderId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     LedId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ScheduledAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -237,12 +204,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_one_on_ones", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_one_on_ones_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_one_on_ones_users_LeaderId",
                         column: x => x.LeaderId,
@@ -263,7 +224,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     AuthorId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     Type = table.Column<string>(type: "varchar(30)", maxLength: 30, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -281,14 +241,65 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_posts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_posts_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_posts_users_AuthorId",
                         column: x => x.AuthorId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "refresh_tokens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    TokenHash = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ReplacedByTokenId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    CreatedByIp = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserAgent = table.Column<string>(type: "varchar(300)", maxLength: 300, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_refresh_tokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_refresh_tokens_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "user_tokens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Purpose = table.Column<string>(type: "varchar(30)", maxLength: 30, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TokenHash = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UsedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_tokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_user_tokens_users_UserId",
+                        column: x => x.UserId,
                         principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -423,7 +434,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     SenderId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     ReceiverId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     CompanyValueId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -450,12 +460,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_recognitions_tenants_TenantId",
-                        column: x => x.TenantId,
-                        principalTable: "tenants",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_recognitions_users_ReceiverId",
                         column: x => x.ReceiverId,
                         principalTable: "users",
@@ -471,20 +475,10 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_company_values_TenantId",
-                table: "company_values",
-                column: "TenantId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_daily_moods_TenantId_UserId_Date",
+                name: "IX_daily_moods_UserId_Date",
                 table: "daily_moods",
-                columns: new[] { "TenantId", "UserId", "Date" },
+                columns: new[] { "UserId", "Date" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_daily_moods_UserId",
-                table: "daily_moods",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_departments_LeaderId",
@@ -497,9 +491,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 column: "ParentDepartmentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_departments_TenantId",
-                table: "departments",
-                column: "TenantId");
+                name: "IX_feedbacks_CreatedAt",
+                table: "feedbacks",
+                column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_feedbacks_ReceiverId",
@@ -510,11 +504,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 name: "IX_feedbacks_SenderId",
                 table: "feedbacks",
                 column: "SenderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_feedbacks_TenantId_CreatedAt",
-                table: "feedbacks",
-                columns: new[] { "TenantId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_one_on_one_actions_AssigneeId",
@@ -547,9 +536,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 column: "LedId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_one_on_ones_TenantId_ScheduledAt",
+                name: "IX_one_on_ones_ScheduledAt",
                 table: "one_on_ones",
-                columns: new[] { "TenantId", "ScheduledAt" });
+                column: "ScheduledAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_post_comments_AuthorId",
@@ -578,14 +567,19 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_posts_TenantId_CreatedAt",
+                name: "IX_posts_CreatedAt",
                 table: "posts",
-                columns: new[] { "TenantId", "CreatedAt" });
+                column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_recognitions_CompanyValueId",
                 table: "recognitions",
                 column: "CompanyValueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_recognitions_CreatedAt",
+                table: "recognitions",
+                column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_recognitions_PostId",
@@ -604,15 +598,26 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_recognitions_TenantId_CreatedAt",
-                table: "recognitions",
-                columns: new[] { "TenantId", "CreatedAt" });
+                name: "IX_refresh_tokens_TokenHash",
+                table: "refresh_tokens",
+                column: "TokenHash",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_tenants_Subdomain",
-                table: "tenants",
-                column: "Subdomain",
+                name: "IX_refresh_tokens_UserId",
+                table: "refresh_tokens",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_tokens_TokenHash",
+                table: "user_tokens",
+                column: "TokenHash",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_tokens_UserId_Purpose",
+                table: "user_tokens",
+                columns: new[] { "UserId", "Purpose" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_DepartmentId",
@@ -620,15 +625,21 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 column: "DepartmentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_users_Email",
+                table: "users",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_GoogleSubject",
+                table: "users",
+                column: "GoogleSubject",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_users_ManagerId",
                 table: "users",
                 column: "ManagerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_users_TenantId_Email",
-                table: "users",
-                columns: new[] { "TenantId", "Email" },
-                unique: true);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_daily_moods_users_UserId",
@@ -651,14 +662,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_departments_tenants_TenantId",
-                table: "departments");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_users_tenants_TenantId",
-                table: "users");
-
-            migrationBuilder.DropForeignKey(
                 name: "FK_departments_users_LeaderId",
                 table: "departments");
 
@@ -675,6 +678,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 name: "one_on_one_points");
 
             migrationBuilder.DropTable(
+                name: "organization");
+
+            migrationBuilder.DropTable(
                 name: "post_comments");
 
             migrationBuilder.DropTable(
@@ -684,6 +690,12 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                 name: "recognitions");
 
             migrationBuilder.DropTable(
+                name: "refresh_tokens");
+
+            migrationBuilder.DropTable(
+                name: "user_tokens");
+
+            migrationBuilder.DropTable(
                 name: "one_on_ones");
 
             migrationBuilder.DropTable(
@@ -691,9 +703,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "posts");
-
-            migrationBuilder.DropTable(
-                name: "tenants");
 
             migrationBuilder.DropTable(
                 name: "users");

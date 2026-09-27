@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginPage } from './components/auth/LoginPage';
+import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
+import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
+import { UsersAdmin } from './components/admin/UsersAdmin';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { PostComposer } from './components/feed/PostComposer';
@@ -25,6 +29,8 @@ import {
 } from 'lucide-react';
 
 const MainApp: React.FC = () => {
+  const { user } = useAuth();
+  const canManageUsers = user?.role === 'Admin' || user?.role === 'HR';
   const [currentTab, setCurrentTab] = useState('feed');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -227,6 +233,8 @@ const MainApp: React.FC = () => {
             </div>
           )}
 
+          {currentTab === 'admin-users' && canManageUsers && <UsersAdmin />}
+
           {['one-on-one', 'feedback', 'okrs', 'performance', 'org'].includes(currentTab) && (
             <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto my-8">
               <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
@@ -240,7 +248,7 @@ const MainApp: React.FC = () => {
                 Módulo em Desenvolvimento (Fases 2 e 3)
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6">
-                As tabelas e modelos de dados para este módulo já foram modelados no MySQL no banco `aron` e a arquitetura está pronta para a próxima etapa do roadmap!
+                Este módulo faz parte das próximas fases do roadmap. Acompanhe a evolução em docs/06-roadmap-implementacao.md.
               </p>
               <button
                 onClick={() => setCurrentTab('feed')}
@@ -284,7 +292,32 @@ const MainApp: React.FC = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <AppRoutes />
     </AuthProvider>
   );
 }
+
+// Sem roteador: as únicas rotas são os links que chegam por e-mail. O resto da navegação é por abas.
+const AppRoutes: React.FC = () => {
+  const { status } = useAuth();
+  const [path, setPath] = useState(window.location.pathname);
+  const token = new URLSearchParams(window.location.search).get('token') ?? '';
+
+  const goHome = () => {
+    window.history.replaceState(null, '', '/');
+    setPath('/');
+  };
+
+  if (path === '/convite') return <AcceptInvitePage token={token} onDone={goHome} />;
+  if (path === '/redefinir-senha') return <ResetPasswordPage token={token} onDone={goHome} />;
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400">
+        <RefreshCw className="w-6 h-6 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  return status === 'authenticated' ? <MainApp /> : <LoginPage />;
+};

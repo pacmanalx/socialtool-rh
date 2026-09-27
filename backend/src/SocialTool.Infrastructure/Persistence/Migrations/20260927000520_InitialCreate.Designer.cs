@@ -12,7 +12,7 @@ using SocialTool.Infrastructure.Persistence;
 namespace SocialTool.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260921234928_InitialCreate")]
+    [Migration("20260927000520_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -48,9 +48,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -60,8 +57,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("company_values", (string)null);
                 });
@@ -84,9 +79,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Property<int>("Score")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -95,9 +87,7 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("TenantId", "UserId", "Date")
+                    b.HasIndex("UserId", "Date")
                         .IsUnique();
 
                     b.ToTable("daily_moods", (string)null);
@@ -123,9 +113,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ParentDepartmentId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -134,8 +121,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.HasIndex("LeaderId");
 
                     b.HasIndex("ParentDepartmentId");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("departments", (string)null);
                 });
@@ -164,9 +149,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("varchar(30)");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -177,11 +159,11 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("ReceiverId");
 
                     b.HasIndex("SenderId");
-
-                    b.HasIndex("TenantId", "CreatedAt");
 
                     b.ToTable("feedbacks", (string)null);
                 });
@@ -215,9 +197,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("varchar(30)");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -227,7 +206,7 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("LedId");
 
-                    b.HasIndex("TenantId", "ScheduledAt");
+                    b.HasIndex("ScheduledAt");
 
                     b.ToTable("one_on_ones", (string)null);
                 });
@@ -303,6 +282,47 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.ToTable("one_on_one_points", (string)null);
                 });
 
+            modelBuilder.Entity("SocialTool.Domain.Entities.Organization", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CurrencyName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasDefaultValue("SocialCoins");
+
+                    b.Property<string>("GoogleWorkspaceDomain")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("MonthlyCoinsQuota")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(100);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("organization", (string)null);
+                });
+
             modelBuilder.Entity("SocialTool.Domain.Entities.Post", b =>
                 {
                     b.Property<Guid>("Id")
@@ -325,9 +345,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsPinned")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("Title")
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
@@ -344,7 +361,7 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.HasIndex("TenantId", "CreatedAt");
+                    b.HasIndex("CreatedAt");
 
                     b.ToTable("posts", (string)null);
                 });
@@ -441,15 +458,14 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("SenderId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyValueId");
+
+                    b.HasIndex("CreatedAt");
 
                     b.HasIndex("PostId")
                         .IsUnique();
@@ -458,12 +474,10 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.HasIndex("TenantId", "CreatedAt");
-
                     b.ToTable("recognitions", (string)null);
                 });
 
-            modelBuilder.Entity("SocialTool.Domain.Entities.Tenant", b =>
+            modelBuilder.Entity("SocialTool.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -472,43 +486,42 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("CurrencyName")
+                    b.Property<string>("CreatedByIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("ReplacedByTokenId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenHash")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasDefaultValue("SocialCoins");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("LogoUrl")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("MonthlyCoinsQuota")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(100);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<string>("Subdomain")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("varchar(60)");
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Subdomain")
+                    b.HasIndex("TokenHash")
                         .IsUnique();
 
-                    b.ToTable("tenants", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("refresh_tokens", (string)null);
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.User", b =>
@@ -516,6 +529,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ActivatedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("longtext");
@@ -540,6 +556,10 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
+                    b.Property<string>("GoogleSubject")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<DateOnly>("HireDate")
                         .HasColumnType("date");
 
@@ -551,6 +571,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<Guid?>("ManagerId")
                         .HasColumnType("char(36)");
 
@@ -560,16 +583,13 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(150)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("varchar(30)");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("char(36)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -578,40 +598,65 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DepartmentId");
 
-                    b.HasIndex("ManagerId");
-
-                    b.HasIndex("TenantId", "Email")
+                    b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("GoogleSubject")
+                        .IsUnique();
+
+                    b.HasIndex("ManagerId");
 
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("SocialTool.Domain.Entities.CompanyValue", b =>
+            modelBuilder.Entity("SocialTool.Domain.Entities.UserToken", b =>
                 {
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany("CompanyValues")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
 
-                    b.Navigation("Tenant");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Purpose");
+
+                    b.ToTable("user_tokens", (string)null);
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.DailyMood", b =>
                 {
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SocialTool.Domain.Entities.User", "User")
                         .WithMany("DailyMoods")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Tenant");
 
                     b.Navigation("User");
                 });
@@ -628,17 +673,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ParentDepartmentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany("Departments")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Leader");
 
                     b.Navigation("ParentDepartment");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.Feedback", b =>
@@ -655,17 +692,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Receiver");
 
                     b.Navigation("Sender");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.OneOnOne", b =>
@@ -682,17 +711,9 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Leader");
 
                     b.Navigation("Led");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.OneOnOneAction", b =>
@@ -741,15 +762,7 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany("Posts")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Author");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.PostComment", b =>
@@ -815,12 +828,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("CompanyValue");
 
                     b.Navigation("Post");
@@ -828,8 +835,17 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Navigation("Receiver");
 
                     b.Navigation("Sender");
+                });
 
-                    b.Navigation("Tenant");
+            modelBuilder.Entity("SocialTool.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("SocialTool.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.User", b =>
@@ -844,17 +860,20 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ManagerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SocialTool.Domain.Entities.Tenant", "Tenant")
-                        .WithMany("Users")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Department");
 
                     b.Navigation("Manager");
+                });
 
-                    b.Navigation("Tenant");
+            modelBuilder.Entity("SocialTool.Domain.Entities.UserToken", b =>
+                {
+                    b.HasOne("SocialTool.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.CompanyValue", b =>
@@ -883,17 +902,6 @@ namespace SocialTool.Infrastructure.Persistence.Migrations
                     b.Navigation("Reactions");
 
                     b.Navigation("Recognition");
-                });
-
-            modelBuilder.Entity("SocialTool.Domain.Entities.Tenant", b =>
-                {
-                    b.Navigation("CompanyValues");
-
-                    b.Navigation("Departments");
-
-                    b.Navigation("Posts");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("SocialTool.Domain.Entities.User", b =>

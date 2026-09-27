@@ -35,6 +35,15 @@ services:
       ADMINER_DEFAULT_SERVER: db
       ADMINER_DESIGN: pepa-linha-dark
 
+  # Caixa de e-mail de desenvolvimento: recebe convites e redefinições de senha sem enviar nada para fora.
+  mail:
+    image: axllent/mailpit:latest
+    container_name: socialtool-mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAIL_SMTP_PORT:-1025}:1025"
+      - "${MAIL_UI_PORT:-8025}:8025"
+
 volumes:
   mysql-data:
     name: socialtool-mysql-data

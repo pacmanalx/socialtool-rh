@@ -3,9 +3,8 @@ using SocialTool.Domain.Enums;
 
 namespace SocialTool.Domain.Entities;
 
-public class Feedback : BaseEntity, ITenantEntity
+public class Feedback : BaseEntity
 {
-    public Guid TenantId { get; set; }
     public Guid SenderId { get; set; }
     public Guid ReceiverId { get; set; }
 
@@ -14,7 +13,6 @@ public class Feedback : BaseEntity, ITenantEntity
     public FeedbackStatus Status { get; set; } = FeedbackStatus.Sent;
 
     // Navigations
-    public Tenant Tenant { get; set; } = null!;
     public User Sender { get; set; } = null!;
     public User Receiver { get; set; } = null!;
 }

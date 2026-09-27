@@ -1,8 +1,13 @@
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using SocialTool.Api.DTOs;
+using SocialTool.Api.Services;
 using SocialTool.Application.Common.Interfaces;
+using SocialTool.Domain.Entities;
+using SocialTool.Domain.Enums;
 using SocialTool.Infrastructure.Persistence;
 
 namespace SocialTool.Api.Controllers;
@@ -11,112 +16,239 @@ namespace SocialTool.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    public const string RateLimitPolicy = "auth";
+
+    // Hash de referência para gastar o mesmo tempo quando o e-mail não existe (evita descobrir contas por tempo de resposta).
+    private static readonly Lazy<string> DummyPasswordHash = new(() => BCrypt.Net.BCrypt.HashPassword("socialtool-timing-dummy"));
+
     private readonly ApplicationDbContext _dbContext;
-    private readonly IJwtTokenService _jwtTokenService;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly ITenantContext _tenantContext;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly ICurrentUserService _currentUser;
+    private readonly SessionService _sessions;
+    private readonly AccountTokenService _accountTokens;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         ApplicationDbContext dbContext,
-        IJwtTokenService jwtTokenService,
         IPasswordHasher passwordHasher,
-        ITenantContext tenantContext,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUser,
+        SessionService sessions,
+        AccountTokenService accountTokens,
+        IConfiguration configuration,
+        ILogger<AuthController> logger)
     {
         _dbContext = dbContext;
-        _jwtTokenService = jwtTokenService;
         _passwordHasher = passwordHasher;
-        _tenantContext = tenantContext;
-        _currentUserService = currentUserService;
+        _currentUser = currentUser;
+        _sessions = sessions;
+        _accountTokens = accountTokens;
+        _configuration = configuration;
+        _logger = logger;
     }
 
-    [HttpPost("login")]
-    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
-    {
-        var user = await _dbContext.Users
-            .Include(u => u.Tenant)
-            .Include(u => u.Department)
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower() && u.IsActive);
+    [AllowAnonymous]
+    [HttpGet("config")]
+    public ActionResult<AuthConfigDto> GetConfig() =>
+        Ok(new AuthConfigDto(GoogleClientId()));
 
-        if (user == null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
-        {
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicy)]
+    [HttpPost("login")]
+    public async Task<ActionResult<SessionResponse>> Login([FromBody] LoginRequest request)
+    {
+        var user = await FindActiveUserByEmailAsync(request.Email);
+
+        var passwordOk = _passwordHasher.VerifyPassword(
+            request.Password ?? string.Empty,
+            user?.PasswordHash ?? DummyPasswordHash.Value);
+
+        if (user?.PasswordHash == null || !passwordOk)
             return Unauthorized(new { message = "E-mail ou senha incorretos." });
+
+        return Ok(await _sessions.StartAsync(user));
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicy)]
+    [HttpPost("google")]
+    public async Task<ActionResult<SessionResponse>> LoginWithGoogle([FromBody] GoogleLoginRequest request)
+    {
+        var clientId = GoogleClientId();
+        if (clientId == null)
+            return NotFound(new { message = "O login com Google não está habilitado." });
+
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            payload = await GoogleJsonWebSignature.ValidateAsync(
+                request.Credential,
+                new GoogleJsonWebSignature.ValidationSettings { Audience = new[] { clientId } });
+        }
+        catch (InvalidJwtException ex)
+        {
+            _logger.LogWarning("Credencial Google recusada: {Reason}", ex.Message);
+            return Unauthorized(new { message = "Não foi possível validar a conta Google." });
         }
 
-        var token = _jwtTokenService.GenerateToken(user, user.Tenant.Subdomain);
+        const string notAllowed = "Esta conta Google não tem acesso. Peça um convite ao RH ou ao administrador.";
+        if (!payload.EmailVerified || string.IsNullOrEmpty(payload.Email))
+            return Unauthorized(new { message = notAllowed });
 
-        var profile = new UserProfileDto(
-            user.Id,
-            user.TenantId,
-            user.Name,
-            user.Email,
-            user.JobTitle,
-            user.Role.ToString(),
-            user.AvatarUrl,
-            user.CoinsAvailableToGive,
-            user.CoinsBalanceToSpend,
-            user.Department?.Name
-        );
+        var user = await FindActiveUserByEmailAsync(payload.Email);
+        var workspaceDomain = (await _dbContext.GetOrganizationAsync()).GoogleWorkspaceDomain;
+        if (user == null
+            || string.IsNullOrEmpty(workspaceDomain)
+            || !string.Equals(payload.HostedDomain, workspaceDomain, StringComparison.OrdinalIgnoreCase)
+            || (user.GoogleSubject != null && user.GoogleSubject != payload.Subject))
+        {
+            return Unauthorized(new { message = notAllowed });
+        }
 
-        var tenantDto = new TenantDto(
-            user.Tenant.Id,
-            user.Tenant.Name,
-            user.Tenant.Subdomain,
-            user.Tenant.CurrencyName,
-            user.Tenant.MonthlyCoinsQuota
-        );
-
-        return Ok(new LoginResponse(token, profile, tenantDto));
+        user.GoogleSubject ??= payload.Subject;
+        user.ActivatedAt ??= DateTime.UtcNow;
+        return Ok(await _sessions.StartAsync(user));
     }
 
-    [Authorize]
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<ActionResult<SessionResponse>> Refresh()
+    {
+        var session = await _sessions.RefreshAsync();
+        return session == null
+            ? Unauthorized(new { message = "Sessão expirada. Entre novamente." })
+            : Ok(session);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        await _sessions.EndCurrentAsync();
+        return NoContent();
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicy)]
+    [HttpGet("invitations/{token}")]
+    public async Task<ActionResult<InvitationInfoDto>> GetInvitation(string token)
+    {
+        var invitation = await _accountTokens.FindUsableAsync(token, UserTokenPurpose.Invitation);
+        if (invitation == null)
+            return NotFound(new { message = "Convite inválido ou expirado. Peça um novo convite ao RH." });
+
+        var organization = await _dbContext.GetOrganizationAsync();
+        return Ok(new InvitationInfoDto(invitation.User.Name, invitation.User.Email, organization.Name));
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicy)]
+    [HttpPost("invitations/accept")]
+    public async Task<ActionResult<SessionResponse>> AcceptInvitation([FromBody] AcceptInvitationRequest request)
+    {
+        var error = PasswordPolicy.Validate(request.Password);
+        if (error != null)
+            return BadRequest(new { message = error });
+
+        var invitation = await _accountTokens.FindUsableAsync(request.Token, UserTokenPurpose.Invitation);
+        if (invitation == null)
+            return NotFound(new { message = "Convite inválido ou expirado. Peça um novo convite ao RH." });
+
+        var user = invitation.User;
+        user.PasswordHash = _passwordHasher.HashPassword(request.Password);
+        user.ActivatedAt ??= DateTime.UtcNow;
+        await _accountTokens.ConsumeAsync(invitation);
+        return Ok(await _sessions.StartAsync(user));
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicy)]
+    [HttpPost("password/forgot")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        // A resposta é a mesma exista ou não a conta, para não revelar quais e-mails estão cadastrados.
+        var user = await FindActiveUserByEmailAsync(request.Email);
+        if (user != null)
+        {
+            try
+            {
+                await _accountTokens.SendPasswordResetAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao enviar e-mail de redefinição de senha para o usuário {UserId}", user.Id);
+            }
+        }
+        return Accepted(new { message = "Se o e-mail estiver cadastrado, você vai receber um link para definir uma nova senha." });
+    }
+
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicy)]
+    [HttpPost("password/reset")]
+    public async Task<ActionResult<SessionResponse>> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var error = PasswordPolicy.Validate(request.Password);
+        if (error != null)
+            return BadRequest(new { message = error });
+
+        var reset = await _accountTokens.FindUsableAsync(request.Token, UserTokenPurpose.PasswordReset);
+        if (reset == null)
+            return NotFound(new { message = "Link inválido ou expirado. Peça uma nova redefinição de senha." });
+
+        var user = reset.User;
+        user.PasswordHash = _passwordHasher.HashPassword(request.Password);
+        user.ActivatedAt ??= DateTime.UtcNow;
+        await _accountTokens.ConsumeAsync(reset);
+        await _sessions.RevokeAllAsync(user.Id);
+        return Ok(await _sessions.StartAsync(user));
+    }
+
+    [HttpPost("password/change")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == _currentUser.UserId);
+        if (user == null)
+            return Unauthorized();
+
+        if (user.PasswordHash != null &&
+            !_passwordHasher.VerifyPassword(request.CurrentPassword ?? string.Empty, user.PasswordHash))
+        {
+            return BadRequest(new { message = "A senha atual não confere." });
+        }
+
+        var error = PasswordPolicy.Validate(request.NewPassword);
+        if (error != null)
+            return BadRequest(new { message = error });
+
+        user.PasswordHash = _passwordHasher.HashPassword(request.NewPassword);
+        await _sessions.RevokeAllAsync(user.Id, keepCurrent: true);
+        return NoContent();
+    }
+
     [HttpGet("me")]
     public async Task<ActionResult<UserProfileDto>> GetCurrentUser()
     {
-        if (!_currentUserService.UserId.HasValue)
-            return Unauthorized();
-
         var user = await _dbContext.Users
             .Include(u => u.Department)
-            .FirstOrDefaultAsync(u => u.Id == _currentUserService.UserId.Value);
+            .FirstOrDefaultAsync(u => u.Id == _currentUser.UserId);
 
-        if (user == null)
-            return NotFound();
-
-        return Ok(new UserProfileDto(
-            user.Id,
-            user.TenantId,
-            user.Name,
-            user.Email,
-            user.JobTitle,
-            user.Role.ToString(),
-            user.AvatarUrl,
-            user.CoinsAvailableToGive,
-            user.CoinsBalanceToSpend,
-            user.Department?.Name
-        ));
+        return user == null ? NotFound() : Ok(SessionService.ToProfile(user));
     }
 
-    [HttpGet("demo-users")]
-    public async Task<ActionResult<IEnumerable<object>>> GetDemoUsers()
+    private async Task<User?> FindActiveUserByEmailAsync(string? email)
     {
-        var users = await _dbContext.Users
-            .Include(u => u.Department)
-            .OrderBy(u => u.Role)
-            .Select(u => new
-            {
-                u.Id,
-                u.Name,
-                u.Email,
-                u.JobTitle,
-                Role = u.Role.ToString(),
-                u.AvatarUrl,
-                Department = u.Department != null ? u.Department.Name : null,
-                DefaultPassword = "123456"
-            })
-            .ToListAsync();
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
 
-        return Ok(users);
+        var normalized = email.Trim().ToLowerInvariant();
+        return await _dbContext.Users
+            .Include(u => u.Department)
+            .FirstOrDefaultAsync(u => u.Email == normalized && u.IsActive);
+    }
+
+    private string? GoogleClientId()
+    {
+        var clientId = _configuration["Auth:Google:ClientId"];
+        return string.IsNullOrWhiteSpace(clientId) ? null : clientId;
     }
 }
