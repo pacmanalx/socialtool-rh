@@ -21,19 +21,24 @@ public class AdminUsersController : ControllerBase
     private readonly ICurrentUserService _currentUser;
     private readonly AccountTokenService _accountTokens;
     private readonly SessionService _sessions;
+    private readonly WorkspaceUserImportService _importer;
     private readonly ILogger<AdminUsersController> _logger;
+
+    private const long ImportMaxBytes = 20 * 1024 * 1024;
 
     public AdminUsersController(
         ApplicationDbContext dbContext,
         ICurrentUserService currentUser,
         AccountTokenService accountTokens,
         SessionService sessions,
+        WorkspaceUserImportService importer,
         ILogger<AdminUsersController> logger)
     {
         _dbContext = dbContext;
         _currentUser = currentUser;
         _accountTokens = accountTokens;
         _sessions = sessions;
+        _importer = importer;
         _logger = logger;
     }
 
@@ -46,8 +51,32 @@ public class AdminUsersController : ControllerBase
             .Include(u => u.Department)
             .OrderBy(u => u.Name)
             .ToListAsync();
+        var invited = await PendingInvitationUserIdsAsync();
 
-        return Ok(users.Select(ToDto));
+        return Ok(users.Select(u => ToDto(u, invited.Contains(u.Id))));
+    }
+
+    [HttpPost("import/preview")]
+    [RequestSizeLimit(ImportMaxBytes)]
+    public async Task<ActionResult<UserImportPreviewDto>> PreviewImport([FromForm] UserImportRequest request)
+    {
+        var (plan, error) = await BuildImportPlanAsync(request);
+        return error ?? Ok(WorkspaceUserImportService.ToPreview(plan!));
+    }
+
+    [HttpPost("import")]
+    [RequestSizeLimit(ImportMaxBytes)]
+    public async Task<ActionResult<UserImportResultDto>> ApplyImport([FromForm] UserImportRequest request)
+    {
+        var (plan, error) = await BuildImportPlanAsync(request);
+        if (error != null)
+            return error;
+
+        var result = await _importer.ApplyAsync(plan!, _currentUser.UserId!.Value, request.File!.FileName);
+        _logger.LogInformation(
+            "Importação de usuários por {UserId}: {Created} criados, {Updated} atualizados, {Deactivated} desativados, {Skipped} ignorados",
+            _currentUser.UserId, result.Created, result.Updated, result.Deactivated, result.Skipped);
+        return Ok(result);
     }
 
     [HttpGet("departments")]
@@ -92,7 +121,7 @@ public class AdminUsersController : ControllerBase
             JobTitle = jobTitle,
             Role = role,
             DepartmentId = request.DepartmentId,
-            HireDate = request.HireDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+            HireDate = request.HireDate,
             CoinsAvailableToGive = organization.MonthlyCoinsQuota
         };
         _dbContext.Users.Add(user);
@@ -107,7 +136,7 @@ public class AdminUsersController : ControllerBase
         }
 
         await _dbContext.Entry(user).Reference(u => u.Department).LoadAsync();
-        return CreatedAtAction(nameof(GetUsers), ToDto(user));
+        return CreatedAtAction(nameof(GetUsers), ToDto(user, invitePending: true));
     }
 
     [HttpPut("{id:guid}")]
@@ -121,8 +150,9 @@ public class AdminUsersController : ControllerBase
         var jobTitle = request.JobTitle?.Trim() ?? string.Empty;
         if (name.Length is 0 or > 150)
             return BadRequest(new { message = "Informe o nome (até 150 caracteres)." });
-        if (jobTitle.Length is 0 or > 100)
-            return BadRequest(new { message = "Informe o cargo (até 100 caracteres)." });
+        // Cargo pode ficar vazio na edição: usuários importados nem sempre têm cargo no diretório.
+        if (jobTitle.Length > 100)
+            return BadRequest(new { message = "O cargo pode ter até 100 caracteres." });
         if (!TryParseRole(request.Role, out var role))
             return BadRequest(new { message = "Papel inválido." });
         if (request.DepartmentId.HasValue && !await _dbContext.Departments.AnyAsync(d => d.Id == request.DepartmentId))
@@ -140,7 +170,7 @@ public class AdminUsersController : ControllerBase
         await _dbContext.SaveChangesAsync();
 
         await _dbContext.Entry(user).Reference(u => u.Department).LoadAsync();
-        return Ok(ToDto(user));
+        return Ok(ToDto(user, await HasPendingInvitationAsync(user.Id)));
     }
 
     [HttpPost("{id:guid}/resend-invite")]
@@ -150,7 +180,7 @@ public class AdminUsersController : ControllerBase
         if (user == null)
             return NotFound();
         if (!user.IsActive || user.ActivatedAt != null)
-            return BadRequest(new { message = "Só é possível reenviar convite para quem ainda não entrou." });
+            return BadRequest(new { message = "Só é possível enviar convite para quem ainda não acessou." });
         if (user.Role == UserRole.Admin && !IsAdmin)
             return Forbid();
 
@@ -158,6 +188,41 @@ public class AdminUsersController : ControllerBase
             return StatusCode(StatusCodes.Status502BadGateway, new { message = "O e-mail de convite não pôde ser enviado. Confira a configuração de e-mail." });
 
         return NoContent();
+    }
+
+    // Envio em lote. O front manda no máximo BulkInviteMax por chamada e repete, mostrando o progresso:
+    // centenas de e-mails numa requisição só estourariam o tempo limite e o limite do servidor SMTP.
+    public const int BulkInviteMax = 25;
+
+    [HttpPost("invitations")]
+    public async Task<ActionResult<BulkInviteResultDto>> SendInvitations([FromBody] BulkInviteRequest request)
+    {
+        var ids = (request.UserIds ?? []).Distinct().ToList();
+        if (ids.Count == 0)
+            return BadRequest(new { message = "Nenhum usuário selecionado." });
+        if (ids.Count > BulkInviteMax)
+            return BadRequest(new { message = $"Envie no máximo {BulkInviteMax} convites por vez." });
+
+        var users = await _dbContext.Users.Where(u => ids.Contains(u.Id)).ToListAsync();
+        var organizationName = (await _dbContext.GetOrganizationAsync()).Name;
+        int sent = 0, skipped = ids.Count - users.Count;
+        var failed = new List<string>();
+
+        foreach (var user in users)
+        {
+            // Mesmas regras do convite individual: só quem nunca acessou, e o RH não convida administradores.
+            if (!user.IsActive || user.ActivatedAt != null || (user.Role == UserRole.Admin && !IsAdmin))
+            {
+                skipped++;
+                continue;
+            }
+            if (await TrySendInvitationAsync(user, organizationName))
+                sent++;
+            else
+                failed.Add(user.Email);
+        }
+
+        return Ok(new BulkInviteResultDto(sent, skipped, failed.Count, failed));
     }
 
     [Authorize(Roles = "Admin")]
@@ -174,7 +239,7 @@ public class AdminUsersController : ControllerBase
         user.IsActive = false;
         await _dbContext.SaveChangesAsync();
         await _sessions.RevokeAllAsync(user.Id);
-        return Ok(ToDto(user));
+        return Ok(ToDto(user, await HasPendingInvitationAsync(user.Id)));
     }
 
     [Authorize(Roles = "Admin")]
@@ -187,7 +252,7 @@ public class AdminUsersController : ControllerBase
 
         user.IsActive = true;
         await _dbContext.SaveChangesAsync();
-        return Ok(ToDto(user));
+        return Ok(ToDto(user, await HasPendingInvitationAsync(user.Id)));
     }
 
     private async Task<bool> TrySendInvitationAsync(User user, string organizationName)
@@ -204,10 +269,51 @@ public class AdminUsersController : ControllerBase
         }
     }
 
+    private async Task<(ImportPlan? Plan, ActionResult? Error)> BuildImportPlanAsync(UserImportRequest request)
+    {
+        if (request.File == null || request.File.Length == 0)
+            return (null, BadRequest(new { message = "Envie o arquivo JSON exportado do Admin Console." }));
+        if (request.DeactivateSuspended && !IsAdmin)
+            return (null, StatusCode(StatusCodes.Status403Forbidden, new { message = "Só administradores podem desativar usuários na importação." }));
+
+        List<DirectoryEntry> entries;
+        try
+        {
+            await using var stream = request.File.OpenReadStream();
+            entries = WorkspaceExportParser.Parse(stream);
+        }
+        catch (FormatException ex)
+        {
+            return (null, BadRequest(new { message = ex.Message }));
+        }
+        if (entries.Count == 0)
+            return (null, BadRequest(new { message = "O arquivo não tem nenhum usuário." }));
+
+        return (await _importer.BuildPlanAsync(entries, request, _currentUser.UserId), null);
+    }
+
+    private async Task<HashSet<Guid>> PendingInvitationUserIdsAsync()
+    {
+        var now = DateTime.UtcNow;
+        var ids = await _dbContext.UserTokens
+            .Where(t => t.Purpose == UserTokenPurpose.Invitation && t.UsedAt == null && t.ExpiresAt > now)
+            .Select(t => t.UserId)
+            .ToListAsync();
+        return ids.ToHashSet();
+    }
+
+    private Task<bool> HasPendingInvitationAsync(Guid userId)
+    {
+        var now = DateTime.UtcNow;
+        return _dbContext.UserTokens.AnyAsync(t =>
+            t.UserId == userId && t.Purpose == UserTokenPurpose.Invitation && t.UsedAt == null && t.ExpiresAt > now);
+    }
+
     private static bool TryParseRole(string? value, out UserRole role) =>
         Enum.TryParse(value, ignoreCase: true, out role) && Enum.IsDefined(role);
 
-    private static AdminUserDto ToDto(User user) => new(
+    // Pending = nunca acessou e sem convite válido; Invited = convite enviado e ainda válido.
+    private static AdminUserDto ToDto(User user, bool invitePending) => new(
         user.Id,
         user.Name,
         user.Email,
@@ -215,7 +321,9 @@ public class AdminUsersController : ControllerBase
         user.Role.ToString(),
         user.DepartmentId,
         user.Department?.Name,
-        !user.IsActive ? "Inactive" : user.ActivatedAt == null ? "Invited" : "Active",
+        !user.IsActive ? "Inactive"
+            : user.ActivatedAt != null ? "Active"
+            : invitePending ? "Invited" : "Pending",
         user.LastLoginAt,
         user.CreatedAt);
 }

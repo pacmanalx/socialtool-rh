@@ -96,10 +96,14 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = notAllowed });
 
         var user = await FindActiveUserByEmailAsync(payload.Email);
-        var workspaceDomain = (await _dbContext.GetOrganizationAsync()).GoogleWorkspaceDomain;
+        var allowedDomains = (await _dbContext.GetOrganizationAsync()).GetGoogleWorkspaceDomains();
+        var emailDomain = payload.Email[(payload.Email.LastIndexOf('@') + 1)..].ToLowerInvariant();
+        // hd vazio = conta Google pessoal: sempre recusada. Aceita o hd ou o domínio do e-mail, para cobrir
+        // contas de domínios secundários do mesmo Workspace.
+        var domainAllowed = !string.IsNullOrEmpty(payload.HostedDomain)
+            && (allowedDomains.Contains(payload.HostedDomain.ToLowerInvariant()) || allowedDomains.Contains(emailDomain));
         if (user == null
-            || string.IsNullOrEmpty(workspaceDomain)
-            || !string.Equals(payload.HostedDomain, workspaceDomain, StringComparison.OrdinalIgnoreCase)
+            || !domainAllowed
             || (user.GoogleSubject != null && user.GoogleSubject != payload.Subject))
         {
             return Unauthorized(new { message = notAllowed });

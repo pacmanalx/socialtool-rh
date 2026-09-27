@@ -79,10 +79,18 @@ convite, esqueci/redefinir senha) e o OpenAPI em Development.
   e passa a ativo ao definir a senha ou entrar pelo Google.
 - **Google Workspace:** o front usa o Google Identity Services e manda o ID token para `POST /api/auth/google`;
   o backend valida com `GoogleJsonWebSignature` (audience = `Auth:Google:ClientId`) e exige que o `hd` da
-  conta seja o `Organization.GoogleWorkspaceDomain`. Só entra quem já foi convidado — Google não cria usuário.
+  conta (ou o domínio do e-mail, para domínios secundários) esteja em `Organization.GoogleWorkspaceDomains`
+  (lista separada por vírgula; um Workspace pode ter vários domínios). Conta pessoal (sem `hd`) é sempre recusada. Só entra quem já foi convidado — Google não cria usuário.
 - **Papéis** (`UserRole`) vão na claim de role. RH convida e edita cadastro; mudar papel, desativar/reativar
   e mexer em administradores é só do Admin (`AdminUsersController`). Comunicado oficial (`PostType.Announcement`)
   só RH/Admin (`FeedController.CreatePost`).
+- **Importação de usuários** (`WorkspaceUserImportService` + `WorkspaceExportParser`, endpoints
+  `POST /api/admin/users/import/preview` e `/import`, multipart): lê o JSON do Admin Console em memória
+  (nunca grava o arquivo) e só os campos usados (nome, e-mail, cargo, departamento, status, último login).
+  Preview e aplicação recalculam o mesmo plano; a aplicação roda numa transação única e grava um registro
+  em `user_imports`. Regras que não podem regredir: nunca sobrescreve campo preenchido localmente, nunca
+  reativa, nunca envia convite, não desativa a própria conta, e desativar suspensos é opção só de Admin.
+  Situação na lista: `Pending` (nunca acessou, sem convite válido), `Invited`, `Active`, `Inactive`.
 - **Limite de tentativas:** política `auth` (20/min por IP) nos endpoints anônimos de login/convite/senha.
 - **Primeiro admin** de uma instalação nova: seção `Bootstrap` da configuração (`OrganizationBootstrapper`)
   nomeia a organização e, se ainda não houver nenhum usuário, cria o admin sem senha e manda o convite.

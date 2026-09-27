@@ -17,7 +17,7 @@ public class User : BaseEntity
     public DateTime? LastLoginAt { get; set; }
     public string JobTitle { get; set; } = string.Empty;
     public DateOnly? BirthDate { get; set; }
-    public DateOnly HireDate { get; set; }
+    public DateOnly? HireDate { get; set; }
     public string? AvatarUrl { get; set; }
     public UserRole Role { get; set; } = UserRole.Employee;
 

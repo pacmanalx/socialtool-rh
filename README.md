@@ -103,13 +103,14 @@ npm run dev
 - **Entrada só por convite.** Administrador ou RH cadastra a pessoa em **Administração → Usuários**; ela recebe um e-mail com um link (válido por 72 h) para criar a senha. Não existe auto-cadastro.
 - **Senha:** mínimo de 10 caracteres, guardada com BCrypt. "Esqueci minha senha" envia um link válido por 60 min; redefinir ou trocar a senha encerra as outras sessões abertas.
 - **Sessão:** access token JWT de 15 min, mantido só em memória no navegador, e refresh token rotativo em cookie `httpOnly` + `SameSite=Strict` (14 dias). Se um refresh token já usado for reapresentado, todas as sessões da pessoa são derrubadas.
+- **Importação do Google Workspace:** em **Administração → Usuários → Importar do Workspace**, envie o JSON de "Fazer o download dos usuários" do Admin Console. A tela mostra a comparação antes de gravar. A importação é incremental: e-mail novo vira usuário (sem senha e sem convite), e-mail existente só tem cargo e departamento preenchidos se estiverem vazios, contas que nunca entraram no Google e suspensas ficam de fora por padrão, e reimportar o mesmo arquivo não muda nada. A lista de usuários separa quem já acessou de quem nunca acessou. Para quem nunca acessou, dá para enviar o convite por e-mail um a um ou em lote ("Selecionar quem nunca acessou" → "Enviar convite por e-mail"), então conectar o Workspace nunca é obrigatório: todo mundo pode entrar pelo mesmo caminho do convite.
 - **Papéis:** Administrador, RH, Líder e Colaborador. RH convida pessoas e edita cadastros; mudar papel, desativar e reativar contas é exclusivo do Administrador. Desativar corta o acesso imediatamente.
 
 ### Login com Google Workspace (opcional)
 
 1. No [Google Cloud Console](https://console.cloud.google.com/apis/credentials), crie um **ID do cliente OAuth** do tipo *Aplicativo da Web* e adicione a URL do front (ex.: `http://localhost:3000`) em **Origens JavaScript autorizadas**.
 2. Informe o Client ID ao backend: `Auth__Google__ClientId=<seu-client-id>` (variável de ambiente) ou `Auth:Google:ClientId` em `appsettings.Development.json`.
-3. Como administrador, em **Administração → Usuários → Configurações da organização**, preencha o domínio Google Workspace (ex.: `empresa.com.br`).
+3. Como administrador, em **Administração → Usuários → Configurações da organização**, informe os domínios do Google Workspace, um por linha (ex.: `empresa.com.br`). Um Workspace pode ter vários domínios; liste todos os que devem entrar.
 
 O Google só autentica quem **já foi convidado** e tem conta nesse domínio. Contas pessoais (`@gmail.com`) ou de outros domínios são recusadas.
 
@@ -121,7 +122,7 @@ Cada instalação atende **uma organização**. Fora de `Development` não há d
 Bootstrap__OrganizationName="Minha Empresa"
 Bootstrap__AdminName="Nome do Admin"
 Bootstrap__AdminEmail="admin@minhaempresa.com.br"
-Bootstrap__GoogleWorkspaceDomain="minhaempresa.com.br"   # opcional
+Bootstrap__GoogleWorkspaceDomains="minhaempresa.com.br,minhaempresa.com"   # opcional; um ou mais, separados por vírgula
 ```
 
 O administrador recebe um convite por e-mail e, depois de entrar, ajusta nome, moeda e cota mensal em **Configurações da organização**. Se o e-mail falhar, use "Esqueci minha senha" com o mesmo endereço. Antes de subir fora de `Development`, configure também:

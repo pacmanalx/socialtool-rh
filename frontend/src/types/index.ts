@@ -36,7 +36,7 @@ export interface InvitationInfo {
   organizationName: string;
 }
 
-export type AdminUserStatus = 'Invited' | 'Active' | 'Inactive';
+export type AdminUserStatus = 'Pending' | 'Invited' | 'Active' | 'Inactive';
 
 export interface AdminUser {
   id: string;
@@ -51,6 +51,56 @@ export interface AdminUser {
   createdAt: string;
 }
 
+export type UserImportAction = 'Create' | 'Update' | 'Deactivate' | 'Unchanged' | 'Skip';
+
+export interface UserImportOptions {
+  includeNeverSignedIn: boolean;
+  deactivateSuspended: boolean;
+  createMissingDepartments: boolean;
+  excludedEmails: string[];
+}
+
+export interface UserImportRow {
+  email: string;
+  name: string;
+  jobTitle?: string;
+  department?: string;
+  action: UserImportAction;
+  reason?: string;
+  changes: string[];
+  suspendedInWorkspace: boolean;
+  neverSignedInGoogle: boolean;
+  localStatus?: 'Pending' | 'Active' | 'Inactive';
+}
+
+export interface UserImportPreview {
+  totalInFile: number;
+  toCreate: number;
+  toUpdate: number;
+  toDeactivate: number;
+  unchanged: number;
+  skipped: number;
+  localNotInFile: number;
+  departmentsToCreate: string[];
+  unmappedDepartments: string[];
+  rows: UserImportRow[];
+}
+
+export interface UserImportResult {
+  created: number;
+  updated: number;
+  deactivated: number;
+  skipped: number;
+  departmentsCreated: number;
+}
+
+export interface BulkInviteResult {
+  sent: number;
+  skipped: number;
+  failed: number;
+  failedEmails: string[];
+}
+
 export interface DepartmentOption {
   id: string;
   name: string;
@@ -60,7 +110,7 @@ export interface OrganizationSettings {
   name: string;
   currencyName: string;
   monthlyCoinsQuota: number;
-  googleWorkspaceDomain?: string;
+  googleWorkspaceDomains: string[];
   googleLoginConfigured: boolean;
 }
 

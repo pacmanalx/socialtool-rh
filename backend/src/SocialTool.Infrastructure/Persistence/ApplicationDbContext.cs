@@ -25,6 +25,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<OneOnOneAction> OneOnOneActions => Set<OneOnOneAction>();
     public DbSet<UserToken> UserTokens => Set<UserToken>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<UserImport> UserImports => Set<UserImport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,7 +37,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(o => o.Name).HasMaxLength(150).IsRequired();
             entity.Property(o => o.CurrencyName).HasMaxLength(50).HasDefaultValue("SocialCoins");
             entity.Property(o => o.MonthlyCoinsQuota).HasDefaultValue(100);
-            entity.Property(o => o.GoogleWorkspaceDomain).HasMaxLength(200);
+            entity.Property(o => o.GoogleWorkspaceDomains).HasMaxLength(1000);
         });
 
         // Department Configuration
@@ -257,6 +258,19 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserImport>(entity =>
+        {
+            entity.ToTable("user_imports");
+            entity.HasIndex(i => i.CreatedAt);
+            entity.Property(i => i.Source).HasMaxLength(50).IsRequired();
+            entity.Property(i => i.FileName).HasMaxLength(255).IsRequired();
+
+            entity.HasOne(i => i.ImportedBy)
+                .WithMany()
+                .HasForeignKey(i => i.ImportedById)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>

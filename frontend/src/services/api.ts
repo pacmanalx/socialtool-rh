@@ -1,5 +1,6 @@
 import type {
   AdminUser,
+  BulkInviteResult,
   CompanyValue,
   DailyMood,
   DepartmentOption,
@@ -12,6 +13,9 @@ import type {
   Session,
   OrganizationSettings,
   User,
+  UserImportOptions,
+  UserImportPreview,
+  UserImportResult,
   UserRole,
   UserSummary,
 } from '../types';
@@ -66,8 +70,9 @@ interface RequestOptions extends RequestInit {
 
 async function request<T>(endpoint: string, options: RequestOptions = {}, isRetry = false): Promise<T> {
   const { skipRefresh, ...init } = options;
+  // Com FormData o navegador define o Content-Type (multipart com boundary) sozinho.
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(init.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
     ...(init.headers as Record<string, string>),
   };
   if (accessToken) {
@@ -105,6 +110,16 @@ const post = (body?: unknown): RequestOptions => ({
   body: body === undefined ? undefined : JSON.stringify(body),
 });
 
+function importForm(file: File, options: UserImportOptions): FormData {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('includeNeverSignedIn', String(options.includeNeverSignedIn));
+  form.append('deactivateSuspended', String(options.deactivateSuspended));
+  form.append('createMissingDepartments', String(options.createMissingDepartments));
+  options.excludedEmails.forEach((email) => form.append('excludedEmails', email));
+  return form;
+}
+
 export const api = {
   auth: {
     getConfig: () => request<{ googleClientId: string | null }>('/auth/config', { skipRefresh: true }),
@@ -133,15 +148,20 @@ export const api = {
       request<AdminUser>('/admin/users', post(data)),
     updateUser: (id: string, data: { name: string; jobTitle: string; role: UserRole; departmentId?: string }) =>
       request<AdminUser>(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    sendInvitations: (userIds: string[]) => request<BulkInviteResult>('/admin/users/invitations', post({ userIds })),
     resendInvite: (id: string) => request<void>(`/admin/users/${id}/resend-invite`, post()),
     deactivateUser: (id: string) => request<AdminUser>(`/admin/users/${id}/deactivate`, post()),
     reactivateUser: (id: string) => request<AdminUser>(`/admin/users/${id}/reactivate`, post()),
+    previewUserImport: (file: File, options: UserImportOptions) =>
+      request<UserImportPreview>('/admin/users/import/preview', { method: 'POST', body: importForm(file, options) }),
+    applyUserImport: (file: File, options: UserImportOptions) =>
+      request<UserImportResult>('/admin/users/import', { method: 'POST', body: importForm(file, options) }),
     getOrganizationSettings: () => request<OrganizationSettings>('/admin/organization'),
     updateOrganizationSettings: (data: {
       name: string;
       currencyName: string;
       monthlyCoinsQuota: number;
-      googleWorkspaceDomain: string;
+      googleWorkspaceDomains: string[];
     }) => request<OrganizationSettings>('/admin/organization', { method: 'PUT', body: JSON.stringify(data) }),
   },
 

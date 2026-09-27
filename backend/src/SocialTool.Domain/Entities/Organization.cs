@@ -10,6 +10,24 @@ public class Organization : BaseEntity
     public string? LogoUrl { get; set; }
     public string CurrencyName { get; set; } = "SocialCoins";
     public int MonthlyCoinsQuota { get; set; } = 100;
-    // Domínio Google Workspace aceito no login com Google (ex.: "acme.com"). Null desliga o login com Google.
-    public string? GoogleWorkspaceDomain { get; set; }
+    // Domínios Google Workspace aceitos no login com Google, separados por vírgula
+    // (um Workspace pode ter vários, ex.: "acme.com,acme.com.br"). Vazio desliga o login com Google.
+    public string? GoogleWorkspaceDomains { get; set; }
+
+    public IReadOnlyList<string> GetGoogleWorkspaceDomains() =>
+        (GoogleWorkspaceDomains ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(d => d.ToLowerInvariant())
+            .Distinct()
+            .ToList();
+
+    public void SetGoogleWorkspaceDomains(IEnumerable<string> domains)
+    {
+        var list = domains
+            .Select(d => d.Trim().ToLowerInvariant())
+            .Where(d => d.Length > 0)
+            .Distinct()
+            .ToList();
+        GoogleWorkspaceDomains = list.Count == 0 ? null : string.Join(',', list);
+    }
 }

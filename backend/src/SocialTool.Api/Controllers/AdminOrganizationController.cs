@@ -38,17 +38,22 @@ public partial class AdminOrganizationController : ControllerBase
         if (request.MonthlyCoinsQuota is < 0 or > 100_000)
             return BadRequest(new { message = "A cota mensal precisa estar entre 0 e 100000." });
 
-        var domain = request.GoogleWorkspaceDomain?.Trim().ToLowerInvariant();
-        if (string.IsNullOrEmpty(domain))
-            domain = null;
-        else if (!DomainPattern().IsMatch(domain))
-            return BadRequest(new { message = "Informe só o domínio Google Workspace, por exemplo: empresa.com.br" });
+        var domains = (request.GoogleWorkspaceDomains ?? [])
+            .Select(d => d.Trim().ToLowerInvariant())
+            .Where(d => d.Length > 0)
+            .Distinct()
+            .ToList();
+        var invalid = domains.FirstOrDefault(d => !DomainPattern().IsMatch(d));
+        if (invalid != null)
+            return BadRequest(new { message = $"\"{invalid}\" não é um domínio válido. Informe só o domínio, por exemplo: empresa.com.br" });
+        if (domains.Count > 20 || string.Join(',', domains).Length > 1000)
+            return BadRequest(new { message = "Domínios demais: informe no máximo 20." });
 
         var organization = await _dbContext.GetOrganizationAsync();
         organization.Name = name;
         organization.CurrencyName = currency;
         organization.MonthlyCoinsQuota = request.MonthlyCoinsQuota;
-        organization.GoogleWorkspaceDomain = domain;
+        organization.SetGoogleWorkspaceDomains(domains);
         await _dbContext.SaveChangesAsync();
         return Ok(ToDto(organization));
     }
@@ -57,7 +62,7 @@ public partial class AdminOrganizationController : ControllerBase
         organization.Name,
         organization.CurrencyName,
         organization.MonthlyCoinsQuota,
-        organization.GoogleWorkspaceDomain,
+        organization.GetGoogleWorkspaceDomains(),
         !string.IsNullOrWhiteSpace(_configuration["Auth:Google:ClientId"]));
 
     [GeneratedRegex(@"^(?=.{1,200}$)([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$")]

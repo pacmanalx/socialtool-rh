@@ -23,9 +23,10 @@ public static class OrganizationBootstrapper
             return;
 
         var organization = await db.GetOrganizationAsync();
-        var googleDomain = section["GoogleWorkspaceDomain"]?.Trim().ToLowerInvariant();
-        if (!string.IsNullOrEmpty(googleDomain))
-            organization.GoogleWorkspaceDomain = googleDomain;
+        // Aceita vários domínios separados por vírgula: "acme.com,acme.com.br".
+        var googleDomains = section["GoogleWorkspaceDomains"];
+        if (!string.IsNullOrWhiteSpace(googleDomains))
+            organization.SetGoogleWorkspaceDomains(googleDomains.Split(','));
 
         var admin = new User
         {
@@ -33,7 +34,6 @@ public static class OrganizationBootstrapper
             Email = adminEmail,
             JobTitle = "Administrador",
             Role = UserRole.Admin,
-            HireDate = DateOnly.FromDateTime(DateTime.UtcNow),
             CoinsAvailableToGive = organization.MonthlyCoinsQuota
         };
         db.Users.Add(admin);
