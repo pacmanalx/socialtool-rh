@@ -17,6 +17,11 @@ set -a && . deploy/.env.deploy && set +a
 : "${DEPLOY_HOST:?defina DEPLOY_HOST}" "${SERVER_ENV_FILE:?defina SERVER_ENV_FILE}"
 REMOTE_DIR="${REMOTE_DIR:-socialtool}"
 PUBLISH_BRANCH="${PUBLISH_BRANCH:-main}"
+# Caminho relativo = relativo ao home do usuário no servidor (sem ~, que seria expandido aqui).
+case "$SERVER_ENV_FILE" in
+  /*) ENV_ON_SERVER="$SERVER_ENV_FILE" ;;
+  *)  ENV_ON_SERVER="\$HOME/${SERVER_ENV_FILE}" ;;
+esac
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 if [ "$branch" != "$PUBLISH_BRANCH" ]; then
@@ -36,11 +41,11 @@ git archive --format=tar HEAD | ssh "$DEPLOY_HOST" "tar -x -C '${REMOTE_DIR}.new
 ssh "$DEPLOY_HOST" "echo '${commit}' > '${REMOTE_DIR}.new/REVISION' && rm -rf '${REMOTE_DIR}' && mv '${REMOTE_DIR}.new' '${REMOTE_DIR}'"
 
 echo "==> [2/3] Build e subida no servidor"
-ssh "$DEPLOY_HOST" "test -f ${SERVER_ENV_FILE} || { echo 'ERRO: ${SERVER_ENV_FILE} não existe no servidor (modelo: deploy/socialtool.env.example).' >&2; exit 1; }
-  cd '${REMOTE_DIR}' && docker compose -p socialtool --env-file ${SERVER_ENV_FILE} -f deploy/docker-compose.yml up -d --build --remove-orphans"
+ssh "$DEPLOY_HOST" "test -f ${ENV_ON_SERVER} || { echo 'ERRO: ${ENV_ON_SERVER} não existe no servidor (modelo: deploy/socialtool.env.example).' >&2; exit 1; }
+  cd '${REMOTE_DIR}' && docker compose -p socialtool --env-file ${ENV_ON_SERVER} -f deploy/docker-compose.yml up -d --build --remove-orphans"
 
 echo "==> [3/3] Conferindo"
-ssh "$DEPLOY_HOST" "port=\$(sed -n 's/^APP_PORT=//p' ${SERVER_ENV_FILE}); port=\${port:-5185}
+ssh "$DEPLOY_HOST" "port=\$(sed -n 's/^APP_PORT=//p' ${ENV_ON_SERVER}); port=\${port:-5185}
   for i in \$(seq 1 45); do
     curl -fsS -m3 -o /dev/null \"http://127.0.0.1:\${port}/api/health\" 2>/dev/null && { echo \"    no ar em 127.0.0.1:\${port}\"; exit 0; }
     sleep 2
