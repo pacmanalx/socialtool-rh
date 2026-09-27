@@ -72,8 +72,18 @@ convite, esqueci/redefinir senha) e o OpenAPI em Development.
   hashes SHA-256 (`refresh_tokens`).
 - **Reuso de refresh token** já rotacionado derruba todas as sessões do usuário — exceto dentro de 30 s da
   rotação, para duas abas que renovam ao mesmo tempo não se derrubarem.
+- **Todo e-mail sai pelo `GuardedEmailSender`**, o único `IEmailSender` registrado. O `SmtpTransport` (MailKit)
+  não implementa `IEmailSender` de propósito, para ninguém enviar por fora. Duas travas no `appsettings.json`:
+  `Email:Enabled` (geral, `false` por padrão) e `Email:Redirect` (desvio, ligado por padrão e também quando a
+  chave não existe: tudo vai para `Email:Redirect:To`; destino vazio = nada sai). Só `Email:Redirect:Enabled=false`
+  explícito entrega a usuários reais. O e-mail desviado leva "[Desviado de <original>]" no assunto e aviso no
+  corpo. `CanSendTo`/`IsEnabled` são checados antes de gerar token (`AccountTokenService`). Sem envio: convite
+  individual só cadastra (`Pending`), reenvio e lote respondem 409, "esqueci minha senha" responde 202 sem
+  token e o link some do login (`/api/auth/config` `passwordResetAvailable`). Nunca coloque um destino de desvio
+  real no `appsettings.json` versionado (o repositório é público): use `appsettings.Development.json` ou
+  variável de ambiente.
 - **Convite e redefinição de senha** usam tokens de uso único em `user_tokens` (só o hash), enviados por
-  e-mail via `AccountTokenService` → `IEmailSender` (`SmtpEmailSender`, MailKit). Consumir um token
+  e-mail via `AccountTokenService` → `IEmailSender` (`GuardedEmailSender` → `SmtpTransport`, MailKit). Consumir um token
   invalida todos os outros pendentes do usuário.
 - **Usuário convidado** nasce com `PasswordHash = null` e `ActivatedAt = null` ("Convite pendente" na UI)
   e passa a ativo ao definir a senha ou entrar pelo Google.

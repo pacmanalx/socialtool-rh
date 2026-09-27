@@ -1,6 +1,7 @@
 import type {
   AdminUser,
   BulkInviteResult,
+  EmailStatus,
   CompanyValue,
   DailyMood,
   DepartmentOption,
@@ -122,7 +123,8 @@ function importForm(file: File, options: UserImportOptions): FormData {
 
 export const api = {
   auth: {
-    getConfig: () => request<{ googleClientId: string | null }>('/auth/config', { skipRefresh: true }),
+    getConfig: () =>
+      request<{ googleClientId: string | null; passwordResetAvailable: boolean }>('/auth/config', { skipRefresh: true }),
     login: (email: string, password: string) =>
       request<Session>('/auth/login', { ...post({ email, password }), skipRefresh: true }),
     loginWithGoogle: (credential: string) =>
@@ -148,6 +150,7 @@ export const api = {
       request<AdminUser>('/admin/users', post(data)),
     updateUser: (id: string, data: { name: string; jobTitle: string; role: UserRole; departmentId?: string }) =>
       request<AdminUser>(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    getEmailStatus: () => request<EmailStatus>('/admin/users/email-status'),
     sendInvitations: (userIds: string[]) => request<BulkInviteResult>('/admin/users/invitations', post({ userIds })),
     resendInvite: (id: string) => request<void>(`/admin/users/${id}/resend-invite`, post()),
     deactivateUser: (id: string) => request<AdminUser>(`/admin/users/${id}/deactivate`, post()),

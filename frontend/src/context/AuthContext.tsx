@@ -9,6 +9,7 @@ interface AuthContextType {
   user: User | null;
   organization: Organization | null;
   googleClientId: string | null;
+  passwordResetAvailable: boolean;
   applySession: (session: Session) => void;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
@@ -23,6 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
+  const [passwordResetAvailable, setPasswordResetAvailable] = useState(false);
 
   const applySession = useCallback((session: Session) => {
     setAccessToken(session.accessToken);
@@ -50,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // A sessão sobrevive ao recarregar a página pelo cookie de refresh; sem cookie válido, cai no login.
     Promise.all([api.auth.getConfig().catch(() => null), refreshSession()]).then(([config, session]) => {
       setGoogleClientId(config?.googleClientId ?? null);
+      setPasswordResetAvailable(config?.passwordResetAvailable ?? false);
       if (session) {
         applySession(session);
       } else {
@@ -86,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{ status, user, organization, googleClientId, applySession, login, loginWithGoogle, logout, refreshUser }}
+      value={{ status, user, organization, googleClientId, passwordResetAvailable, applySession, login, loginWithGoogle, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

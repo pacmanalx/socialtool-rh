@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FileUp, Mail, RefreshCw, UserPlus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api, refreshSession } from '../../services/api';
-import type { AdminUser, AdminUserStatus, DepartmentOption, OrganizationSettings, UserRole } from '../../types';
+import type { AdminUser, AdminUserStatus, DepartmentOption, EmailStatus, OrganizationSettings, UserRole } from '../../types';
 import { ROLE_LABELS } from '../../types';
 import { FormError } from '../auth/AuthLayout';
 import { errorMessage, inputClass } from '../auth/authForm';
@@ -46,6 +46,8 @@ export const UsersAdmin: React.FC = () => {
   const [search, setSearch] = useState('');
   const [showImport, setShowImport] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [emailStatus, setEmailStatus] = useState<EmailStatus | null>(null);
+  const emailEnabled = emailStatus?.enabled ?? false;
   const [inviteProgress, setInviteProgress] = useState<{ done: number; total: number } | null>(null);
 
   const [invite, setInvite] = useState(emptyInvite);
@@ -55,9 +57,10 @@ export const UsersAdmin: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [list, deps] = await Promise.all([api.admin.listUsers(), api.admin.listDepartments()]);
+      const [list, deps, mail] = await Promise.all([api.admin.listUsers(), api.admin.listDepartments(), api.admin.getEmailStatus()]);
       setUsers(list);
       setDepartments(deps);
+      setEmailStatus(mail);
       setError(null);
     } catch (err) {
       setError(errorMessage(err));
@@ -89,8 +92,11 @@ export const UsersAdmin: React.FC = () => {
     );
   }, [users, statusFilter, search]);
 
-  const canInvite = (u: AdminUser) => isInvitable(u) && (isAdmin || u.role !== 'Admin');
-  const neverAccessed = useMemo(() => users.filter((u) => u.status === 'Pending' && (isAdmin || u.role !== 'Admin')), [users, isAdmin]);
+  const canInvite = (u: AdminUser) => emailEnabled && isInvitable(u) && (isAdmin || u.role !== 'Admin');
+  const neverAccessed = useMemo(
+    () => (emailEnabled ? users.filter((u) => u.status === 'Pending' && (isAdmin || u.role !== 'Admin')) : []),
+    [users, isAdmin, emailEnabled],
+  );
   const visibleInvitable = visibleUsers.filter(canInvite);
   const allVisibleSelected = visibleInvitable.length > 0 && visibleInvitable.every((u) => selected.has(u.id));
 
@@ -122,7 +128,7 @@ export const UsersAdmin: React.FC = () => {
       for (let i = 0; i < ids.length; i += INVITE_BATCH) {
         const result = await api.admin.sendInvitations(ids.slice(i, i + INVITE_BATCH));
         totals.sent += result.sent;
-        totals.skipped += result.skipped;
+        totals.skipped += result.skipped + result.blocked;
         totals.failed.push(...result.failedEmails);
         setInviteProgress({ done: Math.min(i + INVITE_BATCH, ids.length), total: ids.length });
       }
@@ -169,7 +175,11 @@ export const UsersAdmin: React.FC = () => {
         departmentId: invite.departmentId || undefined,
       });
       setUsers((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
-      setNotice(`Convite enviado para ${created.email}.`);
+      setNotice(
+        created.status === 'Invited'
+          ? `Convite enviado para ${created.email}.`
+          : `${created.email} cadastrado. Nenhum e-mail foi enviado (envio desligado nesta instalação).`,
+      );
       setInvite(emptyInvite);
     } catch (err) {
       setInviteError(errorMessage(err));
@@ -214,6 +224,19 @@ export const UsersAdmin: React.FC = () => {
         </button>
       </div>
 
+      {emailStatus && !emailStatus.enabled && (
+        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <strong>Envio de e-mails desligado nesta instalação.</strong> Nenhum convite ou redefinição de senha é enviado; cadastros e importações ficam como
+          "Nunca acessou". Para liberar, configure <code>Email:Enabled=true</code> no servidor.
+        </p>
+      )}
+      {emailStatus?.enabled && emailStatus.redirectTo && (
+        <p className="text-sm text-sky-900 bg-sky-50 border border-sky-200 rounded-xl px-3 py-2">
+          <strong>Desvio de e-mails ligado.</strong> Todo e-mail desta instalação vai para <strong>{emailStatus.redirectTo}</strong>; nenhum usuário recebe nada.
+          Convites e redefinições funcionam normalmente para teste, mas chegam só nesse endereço.
+        </p>
+      )}
+
       {showImport && (
         <WorkspaceImport
           isAdmin={isAdmin}
@@ -225,7 +248,7 @@ export const UsersAdmin: React.FC = () => {
       <form onSubmit={handleInvite} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
         <div className="flex items-center space-x-2 text-slate-800 font-semibold text-sm">
           <UserPlus className="w-4 h-4 text-indigo-600" />
-          <span>Convidar pessoa</span>
+          <span>{emailEnabled ? 'Convidar pessoa' : 'Cadastrar pessoa'}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <input required placeholder="Nome completo" value={invite.name} onChange={(e) => setInvite({ ...invite, name: e.target.value })} className={`${inputClass} lg:col-span-1`} />
@@ -245,7 +268,7 @@ export const UsersAdmin: React.FC = () => {
         </div>
         <FormError message={inviteError} />
         <button type="submit" disabled={inviting} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition disabled:opacity-60 cursor-pointer">
-          {inviting ? 'Enviando convite...' : 'Enviar convite'}
+          {inviting ? 'Salvando...' : emailEnabled ? 'Enviar convite' : 'Cadastrar (sem enviar e-mail)'}
         </button>
       </form>
 
@@ -353,7 +376,7 @@ export const UsersAdmin: React.FC = () => {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-end space-x-3 text-xs font-semibold">
-                      {(u.status === 'Pending' || u.status === 'Invited') && canManage && (
+                      {(u.status === 'Pending' || u.status === 'Invited') && canManage && emailEnabled && (
                         <button onClick={() => resend(u)} disabled={busy} className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 cursor-pointer">
                           <Mail className="w-3.5 h-3.5" />
                           <span>{u.status === 'Pending' ? 'Enviar convite' : 'Reenviar convite'}</span>

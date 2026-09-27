@@ -49,8 +49,8 @@ public class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("config")]
-    public ActionResult<AuthConfigDto> GetConfig() =>
-        Ok(new AuthConfigDto(GoogleClientId()));
+    public ActionResult<AuthConfigDto> GetConfig([FromServices] IEmailSender emailSender) =>
+        Ok(new AuthConfigDto(GoogleClientId(), emailSender.IsEnabled));
 
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitPolicy)]
@@ -172,7 +172,11 @@ public class AuthController : ControllerBase
     {
         // A resposta é a mesma exista ou não a conta, para não revelar quais e-mails estão cadastrados.
         var user = await FindActiveUserByEmailAsync(request.Email);
-        if (user != null)
+        if (user != null && !_accountTokens.CanEmail(user))
+        {
+            _logger.LogInformation("Redefinição de senha pedida com o envio de e-mail desligado; nada foi enviado ao usuário {UserId}", user.Id);
+        }
+        else if (user != null)
         {
             try
             {

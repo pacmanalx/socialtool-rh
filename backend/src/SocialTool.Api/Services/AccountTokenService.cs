@@ -22,8 +22,12 @@ public class AccountTokenService
         _configuration = configuration;
     }
 
+    public bool CanEmail(User user) => _emailSender.CanSendTo(user.Email);
+
+    // Recusa ANTES de gerar o token: sem envio, a pessoa continua como "Nunca acessou", sem convite fantasma.
     public async Task SendInvitationAsync(User user, string organizationName, CancellationToken ct = default)
     {
+        EnsureCanEmail(user);
         var hours = int.TryParse(_configuration["Auth:InvitationHours"], out var h) ? h : 72;
         var raw = await IssueAsync(user.Id, UserTokenPurpose.Invitation, TimeSpan.FromHours(hours), ct);
         var link = $"{PublicUrl()}/convite?token={Uri.EscapeDataString(raw)}";
@@ -46,6 +50,7 @@ public class AccountTokenService
 
     public async Task SendPasswordResetAsync(User user, CancellationToken ct = default)
     {
+        EnsureCanEmail(user);
         var minutes = int.TryParse(_configuration["Auth:PasswordResetMinutes"], out var m) ? m : 60;
         var raw = await IssueAsync(user.Id, UserTokenPurpose.PasswordReset, TimeSpan.FromMinutes(minutes), ct);
         var link = $"{PublicUrl()}/redefinir-senha?token={Uri.EscapeDataString(raw)}";
@@ -111,6 +116,12 @@ public class AccountTokenService
         });
         await _db.SaveChangesAsync(ct);
         return raw;
+    }
+
+    private void EnsureCanEmail(User user)
+    {
+        if (!_emailSender.CanSendTo(user.Email))
+            throw new EmailDeliveryBlockedException(user.Email);
     }
 
     private string PublicUrl() =>

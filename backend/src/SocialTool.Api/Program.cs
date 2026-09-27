@@ -35,7 +35,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+// SmtpTransport não é um IEmailSender: o único jeito de enviar e-mail é pelo wrapper com trava e desvio.
+builder.Services.AddScoped<SmtpTransport>();
+builder.Services.AddScoped<IEmailSender, GuardedEmailSender>();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<AccountTokenService>();
 builder.Services.AddScoped<WorkspaceUserImportService>();

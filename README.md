@@ -83,7 +83,9 @@ npm run dev
 ```
 
 - **Adminer** (UI web pra inspecionar o banco) sobe em `http://localhost:8080` — servidor `db`, usuário `socialtool`, senha `socialtool_dev`, base `socialtool`.
-- **Mailpit** (caixa de e-mail de desenvolvimento) sobe em `http://localhost:8025`. Todo convite e toda redefinição de senha enviados localmente caem ali, sem sair para a internet.
+- **Mailpit** (caixa de e-mail de desenvolvimento) sobe em `http://localhost:8025`. Com o envio ligado (veja abaixo), todo convite e toda redefinição de senha enviados localmente caem ali, sem sair para a internet.
+
+> **E-mail protegido por padrão.** Todo e-mail sai por um único wrapper com duas travas no `appsettings.json`: `Email:Enabled` (trava geral, `false` por padrão: nada sai) e `Email:Redirect` (desvio, ligado por padrão: todo e-mail vai para `Email:Redirect:To`, nunca para o usuário real; com o destino vazio, nada sai). Só com `Email:Redirect:Enabled=false` algum e-mail chega a um usuário real. Para testar localmente, crie `appsettings.Development.json` (fica fora do git) com `"Email": { "Enabled": true, "Redirect": { "Enabled": true, "To": "voce@exemplo.com" } }` — os e-mails caem no Mailpit endereçados a você, com o assunto marcado "[Desviado de ...]".
 
 > **macOS:** a porta 5000 costuma estar ocupada pelo Receptor AirPlay. Rode o backend em outra porta e aponte o front para ela:
 > `ASPNETCORE_URLS=http://localhost:5100 dotnet run --project src/SocialTool.Api` e `VITE_API_URL=http://localhost:5100 npm run dev`.
@@ -128,7 +130,7 @@ Bootstrap__GoogleWorkspaceDomains="minhaempresa.com.br,minhaempresa.com"   # opc
 O administrador recebe um convite por e-mail e, depois de entrar, ajusta nome, moeda e cota mensal em **Configurações da organização**. Se o e-mail falhar, use "Esqueci minha senha" com o mesmo endereço. Antes de subir fora de `Development`, configure também:
 
 - `Jwt__SecretKey`: segredo próprio com pelo menos 32 bytes. O backend **se recusa a subir** com o valor de exemplo.
-- `Email__Smtp__Host`, `Email__Smtp__Port`, `Email__Smtp__User`, `Email__Smtp__Password`, `Email__FromAddress`: o servidor SMTP real.
+- `Email__Smtp__Host`, `Email__Smtp__Port`, `Email__Smtp__User`, `Email__Smtp__Password`, `Email__FromAddress`: o servidor SMTP real, `Email__Enabled=true` para ligar o envio e `Email__Redirect__To=voce@empresa.com.br` para, enquanto o desvio estiver ligado, receber você todos os e-mails no lugar dos usuários. Só `Email__Redirect__Enabled=false` libera o envio real. Com o envio desligado, o primeiro administrador não recebe convite: ele entra pelo Google ou você liga o envio com o desvio para você mesmo e usa "Esqueci minha senha".
 - `App__PublicUrl`: a URL pública do front, usada nos links dos e-mails.
 - `Cors__AllowedOrigins__0`: só se o front for servido de outra origem que não a da API.
 

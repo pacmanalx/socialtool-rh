@@ -88,4 +88,6 @@ public record UserImportResultDto(int Created, int Updated, int Deactivated, int
 
 public record BulkInviteRequest(List<Guid> UserIds);
 
-public record BulkInviteResultDto(int Sent, int Skipped, int Failed, IReadOnlyList<string> FailedEmails);
+public record BulkInviteResultDto(int Sent, int Skipped, int Blocked, int Failed, IReadOnlyList<string> FailedEmails);
+
+public record EmailStatusDto(bool Enabled, string? RedirectTo);

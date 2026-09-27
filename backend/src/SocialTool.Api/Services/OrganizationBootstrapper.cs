@@ -40,9 +40,17 @@ public static class OrganizationBootstrapper
         await db.SaveChangesAsync();
         logger.LogInformation("Bootstrap: administrador {Email} criado.", adminEmail);
 
+        var accountTokens = services.GetRequiredService<AccountTokenService>();
+        if (!accountTokens.CanEmail(admin))
+        {
+            logger.LogWarning("Bootstrap: envio de e-mail desligado (Email:Enabled) — o convite do administrador {Email} NÃO foi enviado. " +
+                "Ele pode entrar com o Google (se configurado) ou você libera o envio e usa \"Esqueci minha senha\".", adminEmail);
+            return;
+        }
+
         try
         {
-            await services.GetRequiredService<AccountTokenService>().SendInvitationAsync(admin, organization.Name);
+            await accountTokens.SendInvitationAsync(admin, organization.Name);
         }
         catch (Exception ex)
         {

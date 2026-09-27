@@ -56,6 +56,10 @@ public class AdminUsersController : ControllerBase
         return Ok(users.Select(u => ToDto(u, invited.Contains(u.Id))));
     }
 
+    [HttpGet("email-status")]
+    public ActionResult<EmailStatusDto> GetEmailStatus([FromServices] IEmailSender emailSender) =>
+        Ok(new EmailStatusDto(emailSender.IsEnabled, emailSender.RedirectTo));
+
     [HttpPost("import/preview")]
     [RequestSizeLimit(ImportMaxBytes)]
     public async Task<ActionResult<UserImportPreviewDto>> PreviewImport([FromForm] UserImportRequest request)
@@ -127,6 +131,13 @@ public class AdminUsersController : ControllerBase
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
 
+        // Com o envio desligado (ou o destinatário fora da lista liberada), só cadastra: fica "Nunca acessou".
+        if (!_accountTokens.CanEmail(user))
+        {
+            await _dbContext.Entry(user).Reference(u => u.Department).LoadAsync();
+            return CreatedAtAction(nameof(GetUsers), ToDto(user, invitePending: false));
+        }
+
         if (!await TrySendInvitationAsync(user, organization.Name))
         {
             return StatusCode(StatusCodes.Status502BadGateway, new
@@ -183,6 +194,8 @@ public class AdminUsersController : ControllerBase
             return BadRequest(new { message = "Só é possível enviar convite para quem ainda não acessou." });
         if (user.Role == UserRole.Admin && !IsAdmin)
             return Forbid();
+        if (!_accountTokens.CanEmail(user))
+            return Conflict(new { message = "O envio de e-mails está desligado nesta instalação. Nenhum convite foi enviado." });
 
         if (!await TrySendInvitationAsync(user, (await _dbContext.GetOrganizationAsync()).Name))
             return StatusCode(StatusCodes.Status502BadGateway, new { message = "O e-mail de convite não pôde ser enviado. Confira a configuração de e-mail." });
@@ -195,8 +208,13 @@ public class AdminUsersController : ControllerBase
     public const int BulkInviteMax = 25;
 
     [HttpPost("invitations")]
-    public async Task<ActionResult<BulkInviteResultDto>> SendInvitations([FromBody] BulkInviteRequest request)
+    public async Task<ActionResult<BulkInviteResultDto>> SendInvitations(
+        [FromBody] BulkInviteRequest request,
+        [FromServices] IEmailSender emailSender)
     {
+        if (!emailSender.IsEnabled)
+            return Conflict(new { message = "O envio de e-mails está desligado nesta instalação. Nenhum convite foi enviado." });
+
         var ids = (request.UserIds ?? []).Distinct().ToList();
         if (ids.Count == 0)
             return BadRequest(new { message = "Nenhum usuário selecionado." });
@@ -205,7 +223,7 @@ public class AdminUsersController : ControllerBase
 
         var users = await _dbContext.Users.Where(u => ids.Contains(u.Id)).ToListAsync();
         var organizationName = (await _dbContext.GetOrganizationAsync()).Name;
-        int sent = 0, skipped = ids.Count - users.Count;
+        int sent = 0, blocked = 0, skipped = ids.Count - users.Count;
         var failed = new List<string>();
 
         foreach (var user in users)
@@ -216,13 +234,18 @@ public class AdminUsersController : ControllerBase
                 skipped++;
                 continue;
             }
+            if (!_accountTokens.CanEmail(user))
+            {
+                blocked++;
+                continue;
+            }
             if (await TrySendInvitationAsync(user, organizationName))
                 sent++;
             else
                 failed.Add(user.Email);
         }
 
-        return Ok(new BulkInviteResultDto(sent, skipped, failed.Count, failed));
+        return Ok(new BulkInviteResultDto(sent, skipped, blocked, failed.Count, failed));
     }
 
     [Authorize(Roles = "Admin")]

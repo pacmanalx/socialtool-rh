@@ -6,11 +6,13 @@ using SocialTool.Application.Common.Interfaces;
 
 namespace SocialTool.Infrastructure.Services;
 
-public class SmtpEmailSender : IEmailSender
+// Só o transporte SMTP. NÃO implementa IEmailSender de propósito: todo envio da aplicação passa
+// obrigatoriamente pelo GuardedEmailSender, que aplica a trava geral e o desvio de destinatário.
+public class SmtpTransport
 {
     private readonly IConfiguration _configuration;
 
-    public SmtpEmailSender(IConfiguration configuration)
+    public SmtpTransport(IConfiguration configuration)
     {
         _configuration = configuration;
     }

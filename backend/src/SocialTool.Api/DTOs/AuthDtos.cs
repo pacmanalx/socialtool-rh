@@ -12,7 +12,7 @@ public record ResetPasswordRequest(string Token, string Password);
 
 public record ChangePasswordRequest(string? CurrentPassword, string NewPassword);
 
-public record AuthConfigDto(string? GoogleClientId);
+public record AuthConfigDto(string? GoogleClientId, bool PasswordResetAvailable);
 
 public record InvitationInfoDto(string Name, string Email, string OrganizationName);
 

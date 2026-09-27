@@ -94,9 +94,15 @@ export interface UserImportResult {
   departmentsCreated: number;
 }
 
+export interface EmailStatus {
+  enabled: boolean;
+  redirectTo: string | null;
+}
+
 export interface BulkInviteResult {
   sent: number;
   skipped: number;
+  blocked: number;
   failed: number;
   failedEmails: string[];
 }

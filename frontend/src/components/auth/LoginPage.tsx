@@ -6,7 +6,7 @@ import { errorMessage, inputClass, primaryButtonClass } from './authForm';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
 export const LoginPage: React.FC = () => {
-  const { login, loginWithGoogle, googleClientId } = useAuth();
+  const { login, loginWithGoogle, googleClientId, passwordResetAvailable } = useAuth();
   const [mode, setMode] = useState<'login' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -94,9 +94,11 @@ export const LoginPage: React.FC = () => {
         <button type="submit" disabled={submitting} className={primaryButtonClass}>
           {submitting ? 'Entrando...' : 'Entrar'}
         </button>
-        <button type="button" onClick={() => { setMode('forgot'); setError(null); }} className="w-full text-xs text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer">
-          Esqueci minha senha
-        </button>
+        {passwordResetAvailable && (
+          <button type="button" onClick={() => { setMode('forgot'); setError(null); }} className="w-full text-xs text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer">
+            Esqueci minha senha
+          </button>
+        )}
       </form>
 
       {googleClientId && (
