@@ -8,6 +8,7 @@ export const P = {
   UsersRevoke: 'users.revoke',
   UsersAuthorize: 'users.authorize',
   UsersAssignRoles: 'users.assign_roles',
+  StructureManage: 'structure.manage',
   FeedAnnounce: 'feed.announce',
   SurveysManage: 'surveys.manage',
   ReportsView: 'reports.view',

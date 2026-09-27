@@ -22,6 +22,16 @@ public class AuditService
         public const string PermissionsChanged = "permissions.changed";
         public const string OrganizationUpdated = "organization.updated";
         public const string SensitiveAccessed = "sensitive.accessed";
+        public const string AreaCreated = "structure.area_created";
+        public const string AreaUpdated = "structure.area_updated";
+        public const string AreaDeleted = "structure.area_deleted";
+        public const string AreaMembersChanged = "structure.members_changed";
+        public const string SurveyCreated = "survey.created";
+        public const string SurveyUpdated = "survey.updated";
+        public const string SurveyPublished = "survey.published";
+        public const string SurveyClosed = "survey.closed";
+        public const string SurveyDeleted = "survey.deleted";
+        public const string ScaleChanged = "survey.scale_changed";
     }
 
     private readonly ApplicationDbContext _dbContext;

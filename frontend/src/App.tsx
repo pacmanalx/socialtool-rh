@@ -5,6 +5,9 @@ import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { UsersAdmin } from './components/admin/UsersAdmin';
 import { AuditLog } from './components/admin/AuditLog';
+import { StructureAdmin } from './components/admin/StructureAdmin';
+import { SurveysAdmin } from './components/surveys/SurveysAdmin';
+import { MySurveys } from './components/surveys/MySurveys';
 import { P } from './permissions';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
@@ -236,6 +239,9 @@ const MainApp: React.FC = () => {
 
           {currentTab === 'admin-users' && can(P.UsersView) && <UsersAdmin />}
           {currentTab === 'admin-audit' && can(P.AuditView) && <AuditLog />}
+          {currentTab === 'admin-structure' && can(P.StructureManage) && <StructureAdmin />}
+          {currentTab === 'admin-surveys' && can(P.SurveysManage) && <SurveysAdmin />}
+          {currentTab === 'surveys' && <MySurveys />}
 
           {['one-on-one', 'feedback', 'okrs', 'performance', 'org'].includes(currentTab) && (
             <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto my-8">

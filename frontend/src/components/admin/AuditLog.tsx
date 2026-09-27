@@ -14,6 +14,8 @@ const ACTION_FILTERS: { key: string; label: string }[] = [
   { key: 'user.role_changed', label: 'Mudanças de papel' },
   { key: 'permissions.', label: 'Permissões' },
   { key: 'users.imported', label: 'Importações' },
+  { key: 'structure.', label: 'Estrutura' },
+  { key: 'survey.', label: 'Enquetes' },
   { key: 'organization.', label: 'Organização' },
   { key: 'sensitive.', label: 'Acesso a dado sensível' },
 ];
@@ -30,6 +32,16 @@ const ACTION_LABELS: Record<string, string> = {
   'permissions.changed': 'Permissões',
   'organization.updated': 'Organização',
   'sensitive.accessed': 'Dado sensível',
+  'structure.area_created': 'Área criada',
+  'structure.area_updated': 'Área alterada',
+  'structure.area_deleted': 'Área apagada',
+  'structure.members_changed': 'Pessoas na área',
+  'survey.created': 'Enquete criada',
+  'survey.updated': 'Enquete alterada',
+  'survey.published': 'Enquete publicada',
+  'survey.closed': 'Enquete encerrada',
+  'survey.deleted': 'Enquete apagada',
+  'survey.scale_changed': 'Escala de resposta',
 };
 
 const PAGE_SIZE = 50;

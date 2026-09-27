@@ -118,12 +118,22 @@ convite, esqueci/redefinir senha) e o OpenAPI em Development.
 - **Humor diário:** `UsersController.SubmitDailyMood` faz upsert por `(UserId, Date)` — índice único em
   `(UserId, Date)`. Um check-in por dia, editável.
 - **Reação é toggle:** mesma `(PostId, UserId, Type)` mandada de novo remove a reação (índice único).
+- **Permissões administrativas:** catálogo em `Domain/Authorization/Permissions.cs`, concedidas por pessoa
+  (`user_permissions`, só valem para `Role = HR`; Admin pode tudo). Use `[RequirePermission(...)]` ou
+  `[RequireAdmin]` — conferidos no banco a cada requisição. Toda ação administrativa grava em `audit_logs`
+  via `AuditService`.
+- **Enquetes:** público = empresa inteira ou áreas da estrutura (`departments` em árvore, com
+  `AreaTree.WithDescendants`). A pergunta guarda **cópia** das opções da escala. Situação sai das datas
+  (`Survey.StatusAt`), sem job. **Anonimato:** a enquete anônima grava `SurveyResponse.UserId = null` e
+  `CreatedAt` só com a data (resposta e itens), e a participação fica em tabela separada. Essas entidades
+  implementam `IKeepsCreatedAt` para o `SaveChangesAsync` não regravar o horário — não remova, senão dá para
+  cruzar resposta e pessoa pelo horário. Recorte por área só com `MinimumGroup` (4) respostas.
 
 ### Modelado mas sem endpoint
 
 `Feedback`, `OneOnOne`, `OneOnOnePoint` e `OneOnOneAction` já têm entidade, configuração no
 `OnModelCreating`, DbSet, enums (`FeedbackVisibility`/`FeedbackStatus`/`OneOnOneStatus`) e tabela criada
-pela migration `InitialCreate` — falta DTO, controller e tela. Já **OKRs, pesquisas/eNPS, 360° e 9-Box
+pela migration `InitialCreate` — falta DTO, controller e tela. Já **OKRs, 360° e 9-Box
 não existem em camada alguma**: só em `docs/`. As abas de "Módulo em Desenvolvimento" do `App.tsx`
 misturam os dois casos — conferir se a entidade existe antes de assumir que é só plugar.
 

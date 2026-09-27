@@ -11,6 +11,7 @@ public static class Permissions
     public const string UsersRevoke = "users.revoke";
     public const string UsersAuthorize = "users.authorize";
     public const string UsersAssignRoles = "users.assign_roles";
+    public const string StructureManage = "structure.manage";
     public const string FeedAnnounce = "feed.announce";
     public const string SurveysManage = "surveys.manage";
     public const string ReportsView = "reports.view";
@@ -27,12 +28,13 @@ public static class Permissions
         new(UsersRevoke, "Usuários", "Revogar acesso", "Desativa contas; a pessoa perde o acesso na hora."),
         new(UsersAuthorize, "Usuários", "Liberar acesso", "Reativa contas desativadas."),
         new(UsersAssignRoles, "Usuários", "Alterar papel", "Muda o papel de colaboradores (nunca para ou de Administrador)."),
+        new(StructureManage, "Estrutura", "Gerenciar estrutura", "Cria unidades, departamentos e setores e aloca as pessoas nas áreas."),
         new(FeedAnnounce, "Comunicação", "Publicar comunicados", "Publica comunicados oficiais no feed."),
-        new(SurveysManage, "Enquetes", "Criar e gerenciar enquetes", "Cria enquetes e pesquisas, acompanha e encerra.", Available: false),
+        new(SurveysManage, "Enquetes", "Criar e gerenciar enquetes", "Cria enquetes, escalas de resposta, acompanha o resultado e encerra."),
         new(ReportsView, "Relatórios", "Ver relatórios", "Consulta relatórios de engajamento, humor e reconhecimento.", Available: false),
         new(ReportsExport, "Relatórios", "Exportar relatórios", "Baixa os relatórios em planilha.", Available: false),
         new(SensitiveViewIndividual, "Dados sensíveis", "Ver dado individual",
-            "Abre humor, feedback ou resposta de uma pessoa identificada. Cada acesso exige motivo e fica registrado.", Available: false),
+            "Abre respostas de enquetes identificadas (e, no futuro, humor e feedback) de uma pessoa. Cada acesso exige motivo e fica registrado."),
         new(AuditView, "Auditoria", "Ver auditoria", "Consulta o registro de ações administrativas."),
     ];
 
@@ -40,7 +42,7 @@ public static class Permissions
     public static readonly IReadOnlyList<string> HrDefaults =
     [
         UsersView, UsersInvite, UsersEdit, UsersImport, UsersRevoke, UsersAuthorize,
-        FeedAnnounce, SurveysManage, ReportsView,
+        StructureManage, FeedAnnounce, SurveysManage, ReportsView,
     ];
 
     private static readonly HashSet<string> Keys = Catalog.Select(p => p.Key).ToHashSet();

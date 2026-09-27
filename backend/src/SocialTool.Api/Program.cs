@@ -146,6 +146,7 @@ using (var scope = app.Services.CreateScope())
     {
         var db = services.GetRequiredService<ApplicationDbContext>();
         await db.Database.MigrateAsync();
+        await SystemDataSeeder.SeedAsync(db);
 
         if (app.Environment.IsDevelopment() && app.Configuration.GetValue("Seed:SampleData", false))
         {

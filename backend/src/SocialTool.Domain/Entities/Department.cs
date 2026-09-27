@@ -1,11 +1,14 @@
 using SocialTool.Domain.Common;
+using SocialTool.Domain.Enums;
 
 namespace SocialTool.Domain.Entities;
 
+// Nó da estrutura da empresa (unidade, departamento, setor). A árvore vem de ParentDepartmentId.
 public class Department : BaseEntity
 {
     public Guid? ParentDepartmentId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public AreaKind Kind { get; set; } = AreaKind.Department;
     public Guid? LeaderId { get; set; }
 
     // Navigations

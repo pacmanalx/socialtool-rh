@@ -116,12 +116,11 @@ public class AdminUsersController : ControllerBase
     [HttpGet("departments")]
     public async Task<ActionResult<IEnumerable<DepartmentOptionDto>>> GetDepartments()
     {
-        var departments = await _dbContext.Departments
-            .OrderBy(d => d.Name)
-            .Select(d => new DepartmentOptionDto(d.Id, d.Name))
-            .ToListAsync();
-
-        return Ok(departments);
+        // Nome com o caminho na estrutura ("Unidade › Departamento › Setor"), para distinguir homônimos.
+        var tree = await AreaTree.LoadAsync(_dbContext);
+        return Ok(tree.All
+            .Select(d => new DepartmentOptionDto(d.Id, tree.PathOf(d.Id)))
+            .OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase));
     }
 
     [HttpPost]

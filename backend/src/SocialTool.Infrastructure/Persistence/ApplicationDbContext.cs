@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SocialTool.Domain.Common;
 using SocialTool.Domain.Entities;
+using SocialTool.Domain.Enums;
 
 namespace SocialTool.Infrastructure.Persistence;
 
@@ -28,6 +29,15 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserImport> UserImports => Set<UserImport>();
     public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<AnswerScale> AnswerScales => Set<AnswerScale>();
+    public DbSet<AnswerScaleOption> AnswerScaleOptions => Set<AnswerScaleOption>();
+    public DbSet<Survey> Surveys => Set<Survey>();
+    public DbSet<SurveyAudienceArea> SurveyAudienceAreas => Set<SurveyAudienceArea>();
+    public DbSet<SurveyQuestion> SurveyQuestions => Set<SurveyQuestion>();
+    public DbSet<SurveyQuestionOption> SurveyQuestionOptions => Set<SurveyQuestionOption>();
+    public DbSet<SurveyParticipation> SurveyParticipations => Set<SurveyParticipation>();
+    public DbSet<SurveyResponse> SurveyResponses => Set<SurveyResponse>();
+    public DbSet<SurveyAnswer> SurveyAnswers => Set<SurveyAnswer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +57,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("departments");
             entity.Property(d => d.Name).HasMaxLength(100).IsRequired();
+            entity.Property(d => d.Kind).HasConversion<string>().HasMaxLength(20);
 
             entity.HasOne(d => d.ParentDepartment)
                 .WithMany(d => d.SubDepartments)
@@ -302,6 +313,77 @@ public class ApplicationDbContext : DbContext
             entity.Property(a => a.IpAddress).HasMaxLength(45);
         });
 
+        modelBuilder.Entity<AnswerScale>(entity =>
+        {
+            entity.ToTable("answer_scales");
+            entity.Property(a => a.Name).HasMaxLength(100).IsRequired();
+            entity.HasMany(a => a.Options).WithOne(o => o.Scale).HasForeignKey(o => o.ScaleId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AnswerScaleOption>(entity =>
+        {
+            entity.ToTable("answer_scale_options");
+            entity.Property(o => o.Label).HasMaxLength(100).IsRequired();
+            entity.Property(o => o.Value).HasPrecision(9, 2);
+        });
+
+        modelBuilder.Entity<Survey>(entity =>
+        {
+            entity.ToTable("surveys");
+            entity.HasIndex(s => new { s.StartsAt, s.EndsAt });
+            entity.Property(s => s.Title).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.Description).HasMaxLength(2000);
+            entity.HasOne(s => s.CreatedBy).WithMany().HasForeignKey(s => s.CreatedById).OnDelete(DeleteBehavior.Restrict);
+            entity.HasMany(s => s.Audience).WithOne(a => a.Survey).HasForeignKey(a => a.SurveyId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(s => s.Questions).WithOne(q => q.Survey).HasForeignKey(q => q.SurveyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SurveyAudienceArea>(entity =>
+        {
+            entity.ToTable("survey_audience_areas");
+            entity.HasIndex(a => new { a.SurveyId, a.DepartmentId }).IsUnique();
+            entity.HasOne(a => a.Department).WithMany().HasForeignKey(a => a.DepartmentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SurveyQuestion>(entity =>
+        {
+            entity.ToTable("survey_questions");
+            entity.Property(q => q.Text).HasMaxLength(500).IsRequired();
+            entity.Property(q => q.ScaleName).HasMaxLength(100).IsRequired();
+            entity.HasMany(q => q.Options).WithOne(o => o.Question).HasForeignKey(o => o.QuestionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SurveyQuestionOption>(entity =>
+        {
+            entity.ToTable("survey_question_options");
+            entity.Property(o => o.Label).HasMaxLength(100).IsRequired();
+            entity.Property(o => o.Value).HasPrecision(9, 2);
+        });
+
+        modelBuilder.Entity<SurveyParticipation>(entity =>
+        {
+            entity.ToTable("survey_participations");
+            entity.HasIndex(p => new { p.SurveyId, p.UserId }).IsUnique();
+            entity.HasOne(p => p.Survey).WithMany().HasForeignKey(p => p.SurveyId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(p => p.User).WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SurveyResponse>(entity =>
+        {
+            entity.ToTable("survey_responses");
+            entity.HasIndex(r => r.SurveyId);
+            entity.HasOne(r => r.Survey).WithMany().HasForeignKey(r => r.SurveyId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasMany(r => r.Answers).WithOne(a => a.Response).HasForeignKey(a => a.ResponseId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SurveyAnswer>(entity =>
+        {
+            entity.ToTable("survey_answers");
+            entity.HasIndex(a => a.QuestionId);
+            entity.Property(a => a.Value).HasPrecision(9, 2);
+        });
+
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.ToTable("refresh_tokens");
@@ -327,7 +409,8 @@ public class ApplicationDbContext : DbContext
                 if (entry.Entity.Id == Guid.Empty)
                     entry.Entity.Id = Guid.NewGuid();
 
-                entry.Entity.CreatedAt = DateTime.UtcNow;
+                if (entry.Entity is not IKeepsCreatedAt)
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
             }
             else if (entry.State == EntityState.Modified)
             {

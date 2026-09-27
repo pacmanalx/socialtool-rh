@@ -10,7 +10,9 @@ import {
   Building2,
   Sparkles,
   UserCog,
-  ScrollText
+  ScrollText,
+  ClipboardList,
+  Network
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { P } from '../../permissions';
@@ -24,12 +26,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
   const { can } = useAuth();
   const adminItems = [
     { id: 'admin-users', label: 'Usuários', icon: UserCog, allowed: can(P.UsersView) },
+    { id: 'admin-structure', label: 'Estrutura', icon: Network, allowed: can(P.StructureManage) },
+    { id: 'admin-surveys', label: 'Enquetes', icon: ClipboardList, allowed: can(P.SurveysManage) },
     { id: 'admin-audit', label: 'Auditoria', icon: ScrollText, allowed: can(P.AuditView) },
   ].filter((item) => item.allowed);
   const menuItems = [
     { id: 'feed', label: 'Mural Social', icon: MessageSquare, badge: 'Live' },
     { id: 'recognitions', label: 'Reconhecimentos & Moedas', icon: Award },
     { id: 'mood', label: 'Termômetro de Humor', icon: Smile },
+    { id: 'surveys', label: 'Enquetes', icon: ClipboardList },
     { id: 'one-on-one', label: 'Reuniões 1-on-1', icon: CalendarCheck },
     { id: 'feedback', label: 'Feedback Contínuo', icon: Users2 },
     { id: 'okrs', label: 'OKRs & Metas', icon: Target },

@@ -1,5 +1,17 @@
 import type {
   AdminUser,
+  AnswerScale,
+  Area,
+  AreaKind,
+  AreaMember,
+  IndividualResponse,
+  MySurvey,
+  SaveSurvey,
+  ScaleOption,
+  SurveyDetail,
+  SurveyResults,
+  SurveySummary,
+  SurveyToAnswer,
   AuditPage,
   BulkInviteResult,
   EmailStatus,
@@ -180,6 +192,42 @@ export const api = {
       monthlyCoinsQuota: number;
       googleWorkspaceDomains: string[];
     }) => request<OrganizationSettings>('/admin/organization', { method: 'PUT', body: JSON.stringify(data) }),
+  },
+
+  areas: {
+    list: () => request<Area[]>('/areas'),
+    create: (data: { name: string; kind: AreaKind; parentId?: string }) => request<Area>('/admin/areas', post(data)),
+    update: (id: string, data: { name: string; kind: AreaKind; parentId?: string }) =>
+      request<Area>(`/admin/areas/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id: string) => request<void>(`/admin/areas/${id}`, { method: 'DELETE' }),
+    members: (id: string) => request<AreaMember[]>(`/admin/areas/${id}/members`),
+    addMembers: (id: string, userIds: string[]) => request<void>(`/admin/areas/${id}/members`, post({ userIds })),
+    removeMember: (id: string, userId: string) => request<void>(`/admin/areas/${id}/members/${userId}`, { method: 'DELETE' }),
+  },
+
+  surveysAdmin: {
+    scales: () => request<AnswerScale[]>('/admin/answer-scales'),
+    createScale: (data: { name: string; isNps: boolean; options: ScaleOption[] }) => request<AnswerScale>('/admin/answer-scales', post(data)),
+    updateScale: (id: string, data: { name: string; isNps: boolean; options: ScaleOption[] }) =>
+      request<AnswerScale>(`/admin/answer-scales/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteScale: (id: string) => request<void>(`/admin/answer-scales/${id}`, { method: 'DELETE' }),
+    list: () => request<SurveySummary[]>('/admin/surveys'),
+    get: (id: string) => request<SurveyDetail>(`/admin/surveys/${id}`),
+    create: (data: SaveSurvey) => request<SurveyDetail>('/admin/surveys', post(data)),
+    update: (id: string, data: SaveSurvey) => request<SurveyDetail>(`/admin/surveys/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    publish: (id: string) => request<SurveyDetail>(`/admin/surveys/${id}/publish`, post()),
+    close: (id: string) => request<SurveyDetail>(`/admin/surveys/${id}/close`, post()),
+    remove: (id: string) => request<void>(`/admin/surveys/${id}`, { method: 'DELETE' }),
+    results: (id: string, areaId?: string) =>
+      request<SurveyResults>(`/admin/surveys/${id}/results${areaId ? `?areaId=${areaId}` : ''}`),
+    individual: (id: string, reason: string) => request<IndividualResponse[]>(`/admin/surveys/${id}/individual`, post({ reason })),
+  },
+
+  surveys: {
+    mine: () => request<MySurvey[]>('/surveys'),
+    get: (id: string) => request<SurveyToAnswer>(`/surveys/${id}`),
+    submit: (id: string, answers: { questionId: string; optionId: string }[]) =>
+      request<void>(`/surveys/${id}/responses`, post({ answers })),
   },
 
   feed: {
