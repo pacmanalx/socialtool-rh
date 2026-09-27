@@ -181,6 +181,7 @@ app.MapHub<SocialFeedHub>("/hubs/feed");
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 // Rotas do front (/convite/..., /redefinir-senha/...) devolvem o index.html; /api e /hubs continuam 404.
-app.MapFallbackToFile("{*path:regex(^(?!api/|hubs/).*$)}", "index.html").AllowAnonymous();
+// O "nonfile" é essencial: sem ele a rota casa também /assets/x.js e o navegador recebe HTML no lugar do script.
+app.MapFallbackToFile("{*path:nonfile:regex(^(?!api/|hubs/).*$)}", "index.html").AllowAnonymous();
 
 app.Run();
