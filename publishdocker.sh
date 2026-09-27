@@ -54,7 +54,7 @@ echo "==> [3/4] Conferindo o bundle de produção"
 # Um localhost aqui significa .env de desenvolvimento vazando para o build — o sintoma é
 # "Failed to fetch" na máquina do usuário, não no servidor.
 if ssh "${DEPLOY_HOST}" "${DK:-docker} run --rm --entrypoint sh socialtool:latest -c \
-     'grep -lE \"localhost:[0-9]+\" /app/wwwroot/assets/*.js 2>/dev/null'" | grep -q .; then
+     'grep -lE \"localhost:[0-9]+\" /app/wwwroot/static/*.js 2>/dev/null'" | grep -q .; then
   echo "ERRO: o bundle contém localhost. Confira frontend/.env* (use .env.development.local)." >&2
   exit 1
 fi

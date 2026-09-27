@@ -12,6 +12,11 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss()
     ],
+    build: {
+      // Pasta dos arquivos com hash. Trocada de "assets" em 27/09/2026: o CDN guardou respostas erradas
+      // para os nomes antigos, e um caminho novo dispensa limpar o cache.
+      assetsDir: 'static'
+    },
     server: {
       port: Number(env.VITE_PORT) || 3000,
       proxy: {
