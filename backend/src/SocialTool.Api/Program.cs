@@ -175,8 +175,19 @@ if (allowedOrigins.Length > 0)
 }
 
 // Em produção o front compilado fica em wwwroot e é servido pelo próprio backend (mesma origem).
+// index.html sempre revalidado (uma versão nova chega no próximo carregamento); /static/* tem hash no nome
+// e pode ficar em cache por um ano.
+var frontFiles = new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.CacheControl = ctx.Context.Request.Path.StartsWithSegments("/static")
+            ? "public, max-age=31536000, immutable"
+            : "no-cache";
+    }
+};
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(frontFiles);
 
 app.UseAuthentication();
 app.UseMiddleware<ActiveUserMiddleware>();
@@ -189,6 +200,6 @@ app.MapGet("/api/health", () => Results.Ok(new { status = "ok" })).AllowAnonymou
 
 // Rotas do front (/convite/..., /redefinir-senha/...) devolvem o index.html; /api e /hubs continuam 404.
 // O "nonfile" é essencial: sem ele a rota casa também /assets/x.js e o navegador recebe HTML no lugar do script.
-app.MapFallbackToFile("{*path:nonfile:regex(^(?!api/|hubs/).*$)}", "index.html").AllowAnonymous();
+app.MapFallbackToFile("{*path:nonfile:regex(^(?!api/|hubs/).*$)}", "index.html", frontFiles).AllowAnonymous();
 
 app.Run();
