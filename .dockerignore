@@ -1,0 +1,14 @@
+**/node_modules
+**/bin
+**/obj
+**/dist
+.git
+docs
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.*.local.json
+deploy/.env.deploy
+.DS_Store

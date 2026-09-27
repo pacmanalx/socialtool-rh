@@ -50,3 +50,6 @@ mysql-data/
 # ---- Logs ----
 *.log
 logs/
+
+# Publicação (dados do servidor)
+deploy/.env.deploy

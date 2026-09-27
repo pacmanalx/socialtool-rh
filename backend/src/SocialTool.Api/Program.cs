@@ -2,6 +2,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SocialTool.Api.Controllers;
@@ -112,7 +113,25 @@ if (allowedOrigins.Length > 0)
 
 builder.Services.AddOpenApi();
 
+// Atrás de um proxy reverso ou túnel, o IP do visitante chega no X-Forwarded-For. Sem isto, o limite de
+// tentativas de login seria um só para todo mundo. Só ligue se o app NÃO for acessível sem passar pelo proxy.
+var behindProxy = builder.Configuration.GetValue("ForwardedHeaders:Enabled", false);
+if (behindProxy)
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
 var app = builder.Build();
+
+if (behindProxy)
+{
+    app.UseForwardedHeaders();
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -148,6 +167,10 @@ if (allowedOrigins.Length > 0)
     app.UseCors();
 }
 
+// Em produção o front compilado fica em wwwroot e é servido pelo próprio backend (mesma origem).
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseMiddleware<ActiveUserMiddleware>();
 app.UseRateLimiter();
@@ -155,5 +178,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<SocialFeedHub>("/hubs/feed");
+app.MapGet("/api/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+
+// Rotas do front (/convite/..., /redefinir-senha/...) devolvem o index.html; /api e /hubs continuam 404.
+app.MapFallbackToFile("{*path:regex(^(?!api/|hubs/).*$)}", "index.html").AllowAnonymous();
 
 app.Run();

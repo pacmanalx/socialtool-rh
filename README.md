@@ -133,6 +133,18 @@ O administrador recebe um convite por e-mail e, depois de entrar, ajusta nome, m
 - `Email__Smtp__Host`, `Email__Smtp__Port`, `Email__Smtp__User`, `Email__Smtp__Password`, `Email__FromAddress`: o servidor SMTP real, `Email__Enabled=true` para ligar o envio e `Email__Redirect__To=voce@empresa.com.br` para, enquanto o desvio estiver ligado, receber você todos os e-mails no lugar dos usuários. Só `Email__Redirect__Enabled=false` libera o envio real. Com o envio desligado, o primeiro administrador não recebe convite: ele entra pelo Google ou você liga o envio com o desvio para você mesmo e usa "Esqueci minha senha".
 - `App__PublicUrl`: a URL pública do front, usada nos links dos e-mails.
 - `Cors__AllowedOrigins__0`: só se o front for servido de outra origem que não a da API.
+- `ForwardedHeaders__Enabled=true`: quando o app fica atrás de um proxy reverso ou túnel, para o limite de tentativas de login valer por visitante. Só ligue se o app não for acessível sem passar pelo proxy.
+
+### Instalação em servidor com Docker
+
+O `Dockerfile` gera uma imagem única: o backend serve o front compilado, na mesma origem. O `deploy/docker-compose.yml` sobe app, MySQL e um Mailpit interno, com as portas só no loopback do servidor. Na frente, coloque o seu proxy reverso ou túnel com HTTPS.
+
+1. No servidor, copie `deploy/socialtool.env.example` para fora do repositório (por exemplo `~/socialtool-config/socialtool.env`), rode `chmod 600` e preencha. Gere os segredos com `openssl rand -base64 48`.
+2. Suba com `docker compose -p socialtool --env-file ~/socialtool-config/socialtool.env -f deploy/docker-compose.yml up -d --build`.
+
+Para publicar da sua máquina por SSH, preencha `deploy/.env.deploy` (modelo em `deploy/.env.deploy.example`) e rode `deploy/publish.sh`. Ele publica só o commit atual da `main`, sem alterações pendentes, e faz o build no próprio servidor.
+
+O e-mail já sai represado: vai para o Mailpit interno, que guarda as mensagens e não entrega nada. A caixa fica em `127.0.0.1:<MAILPIT_UI_PORT>` no servidor; acesse com `ssh -L 8025:127.0.0.1:<MAILPIT_UI_PORT> servidor` e abra `http://localhost:8025`.
 
 ---
 
