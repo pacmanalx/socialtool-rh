@@ -137,14 +137,15 @@ O administrador recebe um convite por e-mail e, depois de entrar, ajusta nome, m
 
 ### Instalação em servidor com Docker
 
-O `Dockerfile` gera uma imagem única: o backend serve o front compilado, na mesma origem. O `deploy/docker-compose.yml` sobe app, MySQL e um Mailpit interno, com as portas só no loopback do servidor. Na frente, coloque o seu proxy reverso ou túnel com HTTPS.
+O `Dockerfile` gera uma imagem única: o backend serve o front compilado, na mesma origem. No servidor ficam só o Docker, um MySQL 8.4 e o seu proxy reverso ou túnel com HTTPS; a porta do app é publicada apenas no loopback.
 
-1. No servidor, copie `deploy/socialtool.env.example` para fora do repositório (por exemplo `~/socialtool-config/socialtool.env`), rode `chmod 600` e preencha. Gere os segredos com `openssl rand -base64 48`.
-2. Suba com `docker compose -p socialtool --env-file ~/socialtool-config/socialtool.env -f deploy/docker-compose.yml up -d --build`.
+**Uma vez, no servidor:**
+1. Crie o banco e um usuário no MySQL. O container alcança o MySQL do host por `host.docker.internal`, então libere o usuário para a rede do Docker (por exemplo `'socialtool'@'172.%'`).
+2. Crie `/etc/socialtool/api.env`, legível só pelo usuário que roda o Docker (`chmod 600`), com as chaves do `.env.example`. No mínimo: `ConnectionStrings__DefaultConnection` (com `Server=host.docker.internal`), `Jwt__SecretKey` (gere com `openssl rand -base64 48`), `App__PublicUrl`, `ForwardedHeaders__Enabled=true` e o `Bootstrap__*`.
 
-Para publicar da sua máquina por SSH, preencha `deploy/.env.deploy` (modelo em `deploy/.env.deploy.example`) e rode `deploy/publish.sh`. Ele publica só o commit atual da `main`, sem alterações pendentes, e faz o build no próprio servidor.
+**A cada publicação, da sua máquina:** copie `.env.deploy.example` para `.env.deploy`, preencha o servidor e a porta, e rode `./publishdocker.sh`. Ele só publica a `main` sem alterações pendentes. O código vai por rsync, o build é feito no próprio servidor e o `loadandrun.sh` recria o container.
 
-O e-mail já sai represado: vai para o Mailpit interno, que guarda as mensagens e não entrega nada. A caixa fica em `127.0.0.1:<MAILPIT_UI_PORT>` no servidor; acesse com `ssh -L 8025:127.0.0.1:<MAILPIT_UI_PORT> servidor` e abra `http://localhost:8025`.
+O e-mail já sai represado: o `loadandrun.sh` sobe junto um Mailpit (`socialtool-mailpit`), que guarda as mensagens e não entrega nada. Aponte `Email__Smtp__Host=socialtool-mailpit` e `Email__Smtp__Port=1025`. A caixa fica no loopback do servidor: acesse com `ssh -L 8025:127.0.0.1:8026 <servidor>` e abra `http://localhost:8025`.
 
 ---
 
