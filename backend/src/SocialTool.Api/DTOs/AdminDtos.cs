@@ -91,3 +91,25 @@ public record BulkInviteRequest(List<Guid> UserIds);
 public record BulkInviteResultDto(int Sent, int Skipped, int Blocked, int Failed, IReadOnlyList<string> FailedEmails);
 
 public record EmailStatusDto(bool Enabled, string? RedirectTo);
+
+// Motivo opcional ao revogar ou liberar acesso; vai para a auditoria.
+public record AccessChangeRequest(string? Reason);
+
+public record PermissionDefinitionDto(string Key, string Group, string Label, string Description, bool Available);
+
+public record UserPermissionsDto(Guid UserId, string Role, bool Editable, IReadOnlyList<string> Permissions);
+
+public record UpdateUserPermissionsRequest(IReadOnlyList<string>? Permissions);
+
+public record AuditLogDto(
+    Guid Id,
+    DateTime CreatedAt,
+    Guid? ActorId,
+    string ActorName,
+    string Action,
+    Guid? TargetUserId,
+    string? TargetName,
+    string Summary,
+    string? Reason);
+
+public record AuditPageDto(IReadOnlyList<AuditLogDto> Items, int Total, int Page, int PageSize);

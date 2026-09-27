@@ -15,6 +15,8 @@ interface AuthContextType {
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  // Só para mostrar ou esconder na interface; o backend confere de novo a cada requisição.
+  can: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -87,9 +89,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const can = useCallback(
+    (permission: string) => user?.role === 'Admin' || (user?.permissions ?? []).includes(permission),
+    [user],
+  );
+
   return (
     <AuthContext.Provider
-      value={{ status, user, organization, googleClientId, passwordResetAvailable, applySession, login, loginWithGoogle, logout, refreshUser }}
+      value={{ status, user, organization, googleClientId, passwordResetAvailable, applySession, login, loginWithGoogle, logout, refreshUser, can }}
     >
       {children}
     </AuthContext.Provider>

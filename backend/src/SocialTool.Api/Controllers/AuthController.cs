@@ -240,7 +240,9 @@ public class AuthController : ControllerBase
             .Include(u => u.Department)
             .FirstOrDefaultAsync(u => u.Id == _currentUser.UserId);
 
-        return user == null ? NotFound() : Ok(SessionService.ToProfile(user));
+        if (user == null)
+            return NotFound();
+        return Ok(SessionService.ToProfile(user, await PermissionService.GetEffectiveForAsync(_dbContext, user.Id, user.Role)));
     }
 
     private async Task<User?> FindActiveUserByEmailAsync(string? email)

@@ -120,7 +120,7 @@ public class SessionService
         await _db.SaveChangesAsync();
     }
 
-    public static UserProfileDto ToProfile(User user) => new(
+    public static UserProfileDto ToProfile(User user, IReadOnlyList<string> permissions) => new(
         user.Id,
         user.Name,
         user.Email,
@@ -130,7 +130,8 @@ public class SessionService
         user.CoinsAvailableToGive,
         user.CoinsBalanceToSpend,
         user.Department?.Name,
-        user.PasswordHash != null);
+        user.PasswordHash != null,
+        permissions);
 
     private KeyValuePair<RefreshToken, string> AddRefreshToken(Guid userId, DateTime now)
     {
@@ -157,7 +158,7 @@ public class SessionService
         return new SessionResponse(
             access.Token,
             access.ExpiresAt,
-            ToProfile(user),
+            ToProfile(user, await PermissionService.GetEffectiveForAsync(_db, user.Id, user.Role)),
             new OrganizationDto(organization.Name, organization.CurrencyName, organization.MonthlyCoinsQuota));
     }
 

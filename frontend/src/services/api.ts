@@ -1,5 +1,6 @@
 import type {
   AdminUser,
+  AuditPage,
   BulkInviteResult,
   EmailStatus,
   CompanyValue,
@@ -7,6 +8,7 @@ import type {
   DepartmentOption,
   InvitationInfo,
   LeaderboardItem,
+  PermissionDefinition,
   Post,
   PostComment,
   PostType,
@@ -17,6 +19,7 @@ import type {
   UserImportOptions,
   UserImportPreview,
   UserImportResult,
+  UserPermissions,
   UserRole,
   UserSummary,
 } from '../types';
@@ -153,8 +156,19 @@ export const api = {
     getEmailStatus: () => request<EmailStatus>('/admin/users/email-status'),
     sendInvitations: (userIds: string[]) => request<BulkInviteResult>('/admin/users/invitations', post({ userIds })),
     resendInvite: (id: string) => request<void>(`/admin/users/${id}/resend-invite`, post()),
-    deactivateUser: (id: string) => request<AdminUser>(`/admin/users/${id}/deactivate`, post()),
-    reactivateUser: (id: string) => request<AdminUser>(`/admin/users/${id}/reactivate`, post()),
+    deactivateUser: (id: string, reason?: string) => request<AdminUser>(`/admin/users/${id}/deactivate`, post({ reason })),
+    reactivateUser: (id: string, reason?: string) => request<AdminUser>(`/admin/users/${id}/reactivate`, post({ reason })),
+    permissionCatalog: () => request<PermissionDefinition[]>('/admin/permissions/catalog'),
+    getUserPermissions: (id: string) => request<UserPermissions>(`/admin/permissions/users/${id}`),
+    updateUserPermissions: (id: string, permissions: string[]) =>
+      request<UserPermissions>(`/admin/permissions/users/${id}`, { method: 'PUT', body: JSON.stringify({ permissions }) }),
+    listAudit: (params: { page?: number; pageSize?: number; action?: string; userId?: string; search?: string }) => {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') query.set(key, String(value));
+      });
+      return request<AuditPage>(`/admin/audit?${query}`);
+    },
     previewUserImport: (file: File, options: UserImportOptions) =>
       request<UserImportPreview>('/admin/users/import/preview', { method: 'POST', body: importForm(file, options) }),
     applyUserImport: (file: File, options: UserImportOptions) =>

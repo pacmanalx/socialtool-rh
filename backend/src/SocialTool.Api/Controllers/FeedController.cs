@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SocialTool.Api.DTOs;
+using SocialTool.Api.Services;
 using SocialTool.Api.Hubs;
 using SocialTool.Application.Common.Interfaces;
+using SocialTool.Domain.Authorization;
 using SocialTool.Domain.Entities;
 using SocialTool.Domain.Enums;
 using SocialTool.Infrastructure.Persistence;
@@ -57,15 +59,14 @@ public class FeedController : ControllerBase
 
     [Authorize]
     [HttpPost("posts")]
-    public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostRequest request)
+    public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostRequest request, [FromServices] PermissionService permissions)
     {
         if (!_currentUser.UserId.HasValue)
             return Unauthorized();
 
-        if (request.Type == PostType.Announcement &&
-            _currentUser.Role is not (nameof(UserRole.HR) or nameof(UserRole.Admin)))
+        if (request.Type == PostType.Announcement && !await permissions.HasAsync(Permissions.FeedAnnounce))
         {
-            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Só o RH e administradores publicam comunicados oficiais." });
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Você não tem permissão para publicar comunicados oficiais." });
         }
 
         var post = new Post

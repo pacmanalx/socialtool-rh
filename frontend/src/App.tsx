@@ -4,6 +4,8 @@ import { LoginPage } from './components/auth/LoginPage';
 import { AcceptInvitePage } from './components/auth/AcceptInvitePage';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { UsersAdmin } from './components/admin/UsersAdmin';
+import { AuditLog } from './components/admin/AuditLog';
+import { P } from './permissions';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { PostComposer } from './components/feed/PostComposer';
@@ -29,8 +31,7 @@ import {
 } from 'lucide-react';
 
 const MainApp: React.FC = () => {
-  const { user } = useAuth();
-  const canManageUsers = user?.role === 'Admin' || user?.role === 'HR';
+  const { can } = useAuth();
   const [currentTab, setCurrentTab] = useState('feed');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -233,7 +234,8 @@ const MainApp: React.FC = () => {
             </div>
           )}
 
-          {currentTab === 'admin-users' && canManageUsers && <UsersAdmin />}
+          {currentTab === 'admin-users' && can(P.UsersView) && <UsersAdmin />}
+          {currentTab === 'admin-audit' && can(P.AuditView) && <AuditLog />}
 
           {['one-on-one', 'feedback', 'okrs', 'performance', 'org'].includes(currentTab) && (
             <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto my-8">

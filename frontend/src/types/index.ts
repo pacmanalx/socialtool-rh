@@ -15,6 +15,8 @@ export interface User {
   coinsBalanceToSpend: number;
   departmentName?: string;
   hasPassword: boolean;
+  // Permissões administrativas efetivas (Admin recebe todas).
+  permissions: string[];
 }
 
 export interface Organization {
@@ -196,4 +198,39 @@ export interface DailyMood {
   score: number;
   note?: string;
   date: string;
+}
+
+export interface PermissionDefinition {
+  key: string;
+  group: string;
+  label: string;
+  description: string;
+  // false: já pode ser concedida, mas o recurso ainda não existe na plataforma.
+  available: boolean;
+}
+
+export interface UserPermissions {
+  userId: string;
+  role: UserRole;
+  editable: boolean;
+  permissions: string[];
+}
+
+export interface AuditLogEntry {
+  id: string;
+  createdAt: string;
+  actorId?: string;
+  actorName: string;
+  action: string;
+  targetUserId?: string;
+  targetName?: string;
+  summary: string;
+  reason?: string;
+}
+
+export interface AuditPage {
+  items: AuditLogEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

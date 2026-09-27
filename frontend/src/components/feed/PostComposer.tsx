@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { P } from '../../permissions';
 import { api } from '../../services/api';
 import type { CompanyValue, UserSummary } from '../../types';
 import { Sparkles, Send, Coins, MessageSquare, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -10,8 +11,8 @@ interface PostComposerProps {
 }
 
 export const PostComposer: React.FC<PostComposerProps> = ({ onPostCreated, initialMode = 'post' }) => {
-  const { user, refreshUser } = useAuth();
-  const canAnnounce = user?.role === 'HR' || user?.role === 'Admin';
+  const { user, refreshUser, can } = useAuth();
+  const canAnnounce = can(P.FeedAnnounce);
   const [mode, setMode] = useState<'post' | 'recognition'>(initialMode);
 
   // Normal Post State

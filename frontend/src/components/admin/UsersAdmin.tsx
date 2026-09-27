@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FileUp, Mail, RefreshCw, UserPlus } from 'lucide-react';
+import { FileUp, KeyRound, Mail, RefreshCw, UserPlus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api, refreshSession } from '../../services/api';
 import type { AdminUser, AdminUserStatus, DepartmentOption, EmailStatus, OrganizationSettings, UserRole } from '../../types';
@@ -7,6 +7,9 @@ import { ROLE_LABELS } from '../../types';
 import { FormError } from '../auth/AuthLayout';
 import { errorMessage, inputClass } from '../auth/authForm';
 import { WorkspaceImport } from './WorkspaceImport';
+import { PermissionsModal } from './PermissionsModal';
+import { AccessChangeModal } from './AccessChangeModal';
+import { P } from '../../permissions';
 
 const STATUS_STYLES: Record<AdminUserStatus, { label: string; className: string }> = {
   Active: { label: 'Ativo', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
@@ -31,9 +34,17 @@ const isInvitable = (u: AdminUser) => u.status === 'Pending' || u.status === 'In
 const emptyInvite = { name: '', email: '', jobTitle: '', role: 'Employee' as UserRole, departmentId: '' };
 
 export const UsersAdmin: React.FC = () => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, can } = useAuth();
   const isAdmin = currentUser?.role === 'Admin';
-  const assignableRoles: UserRole[] = isAdmin ? ['Employee', 'Leader', 'HR', 'Admin'] : ['Employee', 'Leader', 'HR'];
+  // Mesmas regras do backend: RH e Admin só o Admin dá; Colaborador <-> Líder com a permissão de alterar papel.
+  const assignableRoles: UserRole[] = isAdmin
+    ? ['Employee', 'Leader', 'HR', 'Admin']
+    : can(P.UsersAssignRoles) ? ['Employee', 'Leader'] : ['Employee'];
+  const canActOn = (u: AdminUser) => isAdmin || (u.role !== 'Admin' && u.role !== 'HR');
+  const canChangeRoleOf = (u: AdminUser) =>
+    u.id !== currentUser?.id && (isAdmin || (can(P.UsersAssignRoles) && (u.role === 'Employee' || u.role === 'Leader')));
+  const [permissionsFor, setPermissionsFor] = useState<AdminUser | null>(null);
+  const [accessFor, setAccessFor] = useState<AdminUser | null>(null);
 
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
@@ -92,10 +103,14 @@ export const UsersAdmin: React.FC = () => {
     );
   }, [users, statusFilter, search]);
 
-  const canInvite = (u: AdminUser) => emailEnabled && isInvitable(u) && (isAdmin || u.role !== 'Admin');
+  const mayInvite = can(P.UsersInvite);
+  const canInvite = (u: AdminUser) => mayInvite && emailEnabled && isInvitable(u) && canActOn(u);
   const neverAccessed = useMemo(
-    () => (emailEnabled ? users.filter((u) => u.status === 'Pending' && (isAdmin || u.role !== 'Admin')) : []),
-    [users, isAdmin, emailEnabled],
+    () =>
+      mayInvite && emailEnabled
+        ? users.filter((u) => u.status === 'Pending' && (isAdmin || (u.role !== 'Admin' && u.role !== 'HR')))
+        : [],
+    [users, isAdmin, emailEnabled, mayInvite],
   );
   const visibleInvitable = visibleUsers.filter(canInvite);
   const allVisibleSelected = visibleInvitable.length > 0 && visibleInvitable.every((u) => selected.has(u.id));
@@ -202,14 +217,15 @@ export const UsersAdmin: React.FC = () => {
       setNotice(`Convite enviado para ${u.email}.`);
     });
 
-  const toggleActive = (u: AdminUser) =>
-    runAction(u.id, async () => {
-      if (u.status === 'Inactive') {
-        replaceUser(await api.admin.reactivateUser(u.id));
-      } else if (window.confirm(`Desativar ${u.name}? A pessoa perde o acesso na hora.`)) {
-        replaceUser(await api.admin.deactivateUser(u.id));
-      }
-    });
+  const confirmAccessChange = async (u: AdminUser, reason: string) => {
+    const updated =
+      u.status === 'Inactive'
+        ? await api.admin.reactivateUser(u.id, reason || undefined)
+        : await api.admin.deactivateUser(u.id, reason || undefined);
+    replaceUser(updated);
+    setAccessFor(null);
+    setNotice(updated.status === 'Inactive' ? `Acesso de ${u.name} revogado.` : `Acesso de ${u.name} liberado.`);
+  };
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -218,10 +234,10 @@ export const UsersAdmin: React.FC = () => {
           <h2 className="text-xl font-bold text-slate-900">Usuários</h2>
           <p className="text-sm text-slate-500">Convide pessoas por e-mail ou importe do Google Workspace, e gerencie papéis e acessos.</p>
         </div>
-        <button onClick={() => setShowImport(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 font-semibold text-sm hover:bg-indigo-100 cursor-pointer">
+        {can(P.UsersImport) && <button onClick={() => setShowImport(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 font-semibold text-sm hover:bg-indigo-100 cursor-pointer">
           <FileUp className="w-4 h-4" />
           <span>Importar do Workspace</span>
-        </button>
+        </button>}
       </div>
 
       {emailStatus && !emailStatus.enabled && (
@@ -239,13 +255,18 @@ export const UsersAdmin: React.FC = () => {
 
       {showImport && (
         <WorkspaceImport
-          isAdmin={isAdmin}
+          isAdmin={can(P.UsersRevoke)}
           onClose={() => setShowImport(false)}
           onImported={load}
         />
       )}
 
-      <form onSubmit={handleInvite} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+      {permissionsFor && <PermissionsModal user={permissionsFor} onClose={() => setPermissionsFor(null)} />}
+      {accessFor && (
+        <AccessChangeModal user={accessFor} onCancel={() => setAccessFor(null)} onConfirm={(reason) => confirmAccessChange(accessFor, reason)} />
+      )}
+
+      {mayInvite && <form onSubmit={handleInvite} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
         <div className="flex items-center space-x-2 text-slate-800 font-semibold text-sm">
           <UserPlus className="w-4 h-4 text-indigo-600" />
           <span>{emailEnabled ? 'Convidar pessoa' : 'Cadastrar pessoa'}</span>
@@ -270,7 +291,7 @@ export const UsersAdmin: React.FC = () => {
         <button type="submit" disabled={inviting} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition disabled:opacity-60 cursor-pointer">
           {inviting ? 'Salvando...' : emailEnabled ? 'Enviar convite' : 'Cadastrar (sem enviar e-mail)'}
         </button>
-      </form>
+      </form>}
 
       {notice && <p className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">{notice}</p>}
       <FormError message={error} />
@@ -342,7 +363,7 @@ export const UsersAdmin: React.FC = () => {
           <tbody className="divide-y divide-slate-100">
             {visibleUsers.map((u) => {
               const isSelf = u.id === currentUser?.id;
-              const canManage = isAdmin || u.role !== 'Admin';
+              const canManage = canActOn(u);
               const busy = busyId === u.id;
               return (
                 <tr key={u.id} className={u.status === 'Inactive' ? 'text-slate-400' : 'text-slate-700'}>
@@ -356,9 +377,9 @@ export const UsersAdmin: React.FC = () => {
                     <div className="text-xs text-slate-500">{[u.email, u.jobTitle, u.departmentName].filter(Boolean).join(' · ')}</div>
                   </td>
                   <td className="px-3 py-3">
-                    {isAdmin && !isSelf ? (
+                    {canChangeRoleOf(u) ? (
                       <select value={u.role} disabled={busy} onChange={(e) => changeRole(u, e.target.value as UserRole)} className="px-2 py-1 rounded-lg border border-slate-300 text-xs" aria-label={`Papel de ${u.name}`}>
-                        {assignableRoles.map((role) => (
+                        {(isAdmin ? assignableRoles : (['Employee', 'Leader'] as UserRole[])).map((role) => (
                           <option key={role} value={role}>{ROLE_LABELS[role]}</option>
                         ))}
                       </select>
@@ -376,15 +397,21 @@ export const UsersAdmin: React.FC = () => {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-end space-x-3 text-xs font-semibold">
-                      {(u.status === 'Pending' || u.status === 'Invited') && canManage && emailEnabled && (
+                      {isAdmin && u.role === 'HR' && (
+                        <button onClick={() => setPermissionsFor(u)} className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                          <KeyRound className="w-3.5 h-3.5" />
+                          <span>Permissões</span>
+                        </button>
+                      )}
+                      {(u.status === 'Pending' || u.status === 'Invited') && canManage && mayInvite && emailEnabled && (
                         <button onClick={() => resend(u)} disabled={busy} className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 cursor-pointer">
                           <Mail className="w-3.5 h-3.5" />
                           <span>{u.status === 'Pending' ? 'Enviar convite' : 'Reenviar convite'}</span>
                         </button>
                       )}
-                      {isAdmin && !isSelf && (
-                        <button onClick={() => toggleActive(u)} disabled={busy} className={`cursor-pointer ${u.status === 'Inactive' ? 'text-emerald-600 hover:text-emerald-800' : 'text-rose-600 hover:text-rose-800'}`}>
-                          {u.status === 'Inactive' ? 'Reativar' : 'Desativar'}
+                      {!isSelf && canManage && can(u.status === 'Inactive' ? P.UsersAuthorize : P.UsersRevoke) && (
+                        <button onClick={() => setAccessFor(u)} disabled={busy} className={`cursor-pointer ${u.status === 'Inactive' ? 'text-emerald-600 hover:text-emerald-800' : 'text-rose-600 hover:text-rose-800'}`}>
+                          {u.status === 'Inactive' ? 'Liberar acesso' : 'Revogar acesso'}
                         </button>
                       )}
                     </div>

@@ -33,7 +33,9 @@ public record UserProfileDto(
     int CoinsAvailableToGive,
     int CoinsBalanceToSpend,
     string? DepartmentName,
-    bool HasPassword
+    bool HasPassword,
+    // Permissões administrativas efetivas (Admin recebe o catálogo inteiro); o front usa só para mostrar/esconder.
+    IReadOnlyList<string> Permissions
 );
 
 public record OrganizationDto(

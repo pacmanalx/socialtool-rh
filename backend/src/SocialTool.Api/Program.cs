@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SocialTool.Api.Authorization;
 using SocialTool.Api.Controllers;
 using SocialTool.Api.Hubs;
 using SocialTool.Api.Middlewares;
@@ -42,6 +43,8 @@ builder.Services.AddScoped<IEmailSender, GuardedEmailSender>();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<AccountTokenService>();
 builder.Services.AddScoped<WorkspaceUserImportService>();
+builder.Services.AddScoped<PermissionService>();
+builder.Services.AddScoped<AuditService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -76,6 +79,9 @@ builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
 });
+// [RequirePermission("...")] e [RequireAdmin]: políticas montadas sob demanda e conferidas no banco a cada requisição.
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 
 builder.Services.AddRateLimiter(options =>
 {

@@ -2,19 +2,23 @@ using System.Net.Mail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SocialTool.Api.Authorization;
 using SocialTool.Api.DTOs;
 using SocialTool.Api.Services;
 using SocialTool.Application.Common.Interfaces;
+using SocialTool.Domain.Authorization;
 using SocialTool.Domain.Entities;
 using SocialTool.Domain.Enums;
 using SocialTool.Infrastructure.Persistence;
 
 namespace SocialTool.Api.Controllers;
 
-// RH convida e edita dados cadastrais; papel, desativação e qualquer ação sobre administradores ficam com o Admin.
+// Cada ação exige a sua permissão (concedida pessoa a pessoa pelo Admin; o Admin pode tudo).
+// Quem não é Admin nunca age sobre contas de Admin nem de outros gestores de RH, e só o Admin
+// dá ou tira os papéis de RH e Admin (dar RH concede permissões).
 [ApiController]
 [Route("api/admin/users")]
-[Authorize(Roles = "Admin,HR")]
+[RequirePermission(Permissions.UsersView)]
 public class AdminUsersController : ControllerBase
 {
     private readonly ApplicationDbContext _dbContext;
@@ -22,6 +26,8 @@ public class AdminUsersController : ControllerBase
     private readonly AccountTokenService _accountTokens;
     private readonly SessionService _sessions;
     private readonly WorkspaceUserImportService _importer;
+    private readonly PermissionService _permissions;
+    private readonly AuditService _audit;
     private readonly ILogger<AdminUsersController> _logger;
 
     private const long ImportMaxBytes = 20 * 1024 * 1024;
@@ -32,6 +38,8 @@ public class AdminUsersController : ControllerBase
         AccountTokenService accountTokens,
         SessionService sessions,
         WorkspaceUserImportService importer,
+        PermissionService permissions,
+        AuditService audit,
         ILogger<AdminUsersController> logger)
     {
         _dbContext = dbContext;
@@ -39,10 +47,27 @@ public class AdminUsersController : ControllerBase
         _accountTokens = accountTokens;
         _sessions = sessions;
         _importer = importer;
+        _permissions = permissions;
+        _audit = audit;
         _logger = logger;
     }
 
-    private bool IsAdmin => _currentUser.Role == nameof(UserRole.Admin);
+    private Task<bool> IsAdminAsync() => _permissions.IsAdminAsync();
+
+    // Contas de Admin e de gestores de RH só são mexidas pelo Admin.
+    private async Task<bool> CanActOnAsync(User target) =>
+        await IsAdminAsync() || target.Role is not (UserRole.Admin or UserRole.HR);
+
+    // Colaborador <-> Líder com a permissão de alterar papel; qualquer mudança envolvendo RH ou Admin, só o Admin.
+    private async Task<bool> CanAssignRoleAsync(UserRole from, UserRole to)
+    {
+        if (from == to)
+            return true;
+        if (await IsAdminAsync())
+            return true;
+        var elevated = from is UserRole.Admin or UserRole.HR || to is UserRole.Admin or UserRole.HR;
+        return !elevated && await _permissions.HasAsync(Permissions.UsersAssignRoles);
+    }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AdminUserDto>>> GetUsers()
@@ -61,6 +86,7 @@ public class AdminUsersController : ControllerBase
         Ok(new EmailStatusDto(emailSender.IsEnabled, emailSender.RedirectTo));
 
     [HttpPost("import/preview")]
+    [RequirePermission(Permissions.UsersImport)]
     [RequestSizeLimit(ImportMaxBytes)]
     public async Task<ActionResult<UserImportPreviewDto>> PreviewImport([FromForm] UserImportRequest request)
     {
@@ -69,6 +95,7 @@ public class AdminUsersController : ControllerBase
     }
 
     [HttpPost("import")]
+    [RequirePermission(Permissions.UsersImport)]
     [RequestSizeLimit(ImportMaxBytes)]
     public async Task<ActionResult<UserImportResultDto>> ApplyImport([FromForm] UserImportRequest request)
     {
@@ -80,6 +107,9 @@ public class AdminUsersController : ControllerBase
         _logger.LogInformation(
             "Importação de usuários por {UserId}: {Created} criados, {Updated} atualizados, {Deactivated} desativados, {Skipped} ignorados",
             _currentUser.UserId, result.Created, result.Updated, result.Deactivated, result.Skipped);
+        await _audit.LogAsync(AuditService.Actions.UsersImported,
+            $"Importou {request.File!.FileName}: {result.Created} criados, {result.Updated} atualizados, " +
+            $"{result.Deactivated} desativados, {result.Skipped} ignorados.");
         return Ok(result);
     }
 
@@ -95,6 +125,7 @@ public class AdminUsersController : ControllerBase
     }
 
     [HttpPost]
+    [RequirePermission(Permissions.UsersInvite)]
     public async Task<ActionResult<AdminUserDto>> Invite([FromBody] InviteUserRequest request)
     {
         var name = request.Name?.Trim() ?? string.Empty;
@@ -109,8 +140,8 @@ public class AdminUsersController : ControllerBase
             return BadRequest(new { message = "Informe um e-mail válido." });
         if (!TryParseRole(request.Role, out var role))
             return BadRequest(new { message = "Papel inválido." });
-        if (role == UserRole.Admin && !IsAdmin)
-            return Forbid();
+        if (!await CanAssignRoleAsync(UserRole.Employee, role))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Você não pode cadastrar alguém com esse papel." });
         if (request.DepartmentId.HasValue && !await _dbContext.Departments.AnyAsync(d => d.Id == request.DepartmentId))
             return BadRequest(new { message = "Departamento não encontrado." });
 
@@ -129,7 +160,11 @@ public class AdminUsersController : ControllerBase
             CoinsAvailableToGive = organization.MonthlyCoinsQuota
         };
         _dbContext.Users.Add(user);
+        if (role == UserRole.HR)
+            GrantHrDefaults(user);
         await _dbContext.SaveChangesAsync();
+        await _audit.LogAsync(AuditService.Actions.UserInvited,
+            $"Cadastrou {user.Email} como {RoleLabel(role)}.", user);
 
         // Com o envio desligado (ou o destinatário fora da lista liberada), só cadastra: fica "Nunca acessou".
         if (!_accountTokens.CanEmail(user))
@@ -151,6 +186,7 @@ public class AdminUsersController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission(Permissions.UsersEdit)]
     public async Task<ActionResult<AdminUserDto>> Update(Guid id, [FromBody] UpdateUserRequest request)
     {
         var user = await _dbContext.Users.Include(u => u.Department).FirstOrDefaultAsync(u => u.Id == id);
@@ -169,22 +205,39 @@ public class AdminUsersController : ControllerBase
         if (request.DepartmentId.HasValue && !await _dbContext.Departments.AnyAsync(d => d.Id == request.DepartmentId))
             return BadRequest(new { message = "Departamento não encontrado." });
 
-        if (!IsAdmin && (user.Role == UserRole.Admin || role != user.Role))
-            return Forbid();
+        if (user.Id != _currentUser.UserId && !await CanActOnAsync(user))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Só administradores alteram contas de administradores e de gestores de RH." });
         if (user.Id == _currentUser.UserId && role != user.Role)
             return BadRequest(new { message = "Você não pode alterar o seu próprio papel." });
+        if (!await CanAssignRoleAsync(user.Role, role))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Você não pode dar esse papel." });
+
+        var changes = new List<string>();
+        if (user.Name != name) changes.Add($"nome \"{user.Name}\" → \"{name}\"");
+        if (user.JobTitle != jobTitle) changes.Add($"cargo \"{user.JobTitle}\" → \"{jobTitle}\"");
+        if (user.DepartmentId != request.DepartmentId) changes.Add("departamento");
+        var previousRole = user.Role;
 
         user.Name = name;
         user.JobTitle = jobTitle;
         user.Role = role;
         user.DepartmentId = request.DepartmentId;
+        if (previousRole != role)
+            await ApplyRolePermissionsAsync(user, previousRole);
         await _dbContext.SaveChangesAsync();
+
+        if (changes.Count > 0)
+            await _audit.LogAsync(AuditService.Actions.UserUpdated, $"Editou {user.Email}: {string.Join(", ", changes)}.", user);
+        if (previousRole != role)
+            await _audit.LogAsync(AuditService.Actions.UserRoleChanged,
+                $"Mudou o papel de {user.Email}: {RoleLabel(previousRole)} → {RoleLabel(role)}.", user);
 
         await _dbContext.Entry(user).Reference(u => u.Department).LoadAsync();
         return Ok(ToDto(user, await HasPendingInvitationAsync(user.Id)));
     }
 
     [HttpPost("{id:guid}/resend-invite")]
+    [RequirePermission(Permissions.UsersInvite)]
     public async Task<IActionResult> ResendInvite(Guid id)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -192,14 +245,15 @@ public class AdminUsersController : ControllerBase
             return NotFound();
         if (!user.IsActive || user.ActivatedAt != null)
             return BadRequest(new { message = "Só é possível enviar convite para quem ainda não acessou." });
-        if (user.Role == UserRole.Admin && !IsAdmin)
-            return Forbid();
+        if (!await CanActOnAsync(user))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Só administradores convidam administradores e gestores de RH." });
         if (!_accountTokens.CanEmail(user))
             return Conflict(new { message = "O envio de e-mails está desligado nesta instalação. Nenhum convite foi enviado." });
 
         if (!await TrySendInvitationAsync(user, (await _dbContext.GetOrganizationAsync()).Name))
             return StatusCode(StatusCodes.Status502BadGateway, new { message = "O e-mail de convite não pôde ser enviado. Confira a configuração de e-mail." });
 
+        await _audit.LogAsync(AuditService.Actions.UserInviteResent, $"Reenviou o convite de {user.Email}.", user);
         return NoContent();
     }
 
@@ -208,6 +262,7 @@ public class AdminUsersController : ControllerBase
     public const int BulkInviteMax = 25;
 
     [HttpPost("invitations")]
+    [RequirePermission(Permissions.UsersInvite)]
     public async Task<ActionResult<BulkInviteResultDto>> SendInvitations(
         [FromBody] BulkInviteRequest request,
         [FromServices] IEmailSender emailSender)
@@ -225,11 +280,12 @@ public class AdminUsersController : ControllerBase
         var organizationName = (await _dbContext.GetOrganizationAsync()).Name;
         int sent = 0, blocked = 0, skipped = ids.Count - users.Count;
         var failed = new List<string>();
+        var isAdmin = await IsAdminAsync();
 
         foreach (var user in users)
         {
-            // Mesmas regras do convite individual: só quem nunca acessou, e o RH não convida administradores.
-            if (!user.IsActive || user.ActivatedAt != null || (user.Role == UserRole.Admin && !IsAdmin))
+            // Mesmas regras do convite individual: só quem nunca acessou, e quem não é Admin não convida Admin nem RH.
+            if (!user.IsActive || user.ActivatedAt != null || (!isAdmin && user.Role is UserRole.Admin or UserRole.HR))
             {
                 skipped++;
                 continue;
@@ -245,12 +301,14 @@ public class AdminUsersController : ControllerBase
                 failed.Add(user.Email);
         }
 
+        if (sent > 0)
+            await _audit.LogAsync(AuditService.Actions.UserInvitesBulk, $"Enviou {sent} convite(s) em lote.");
         return Ok(new BulkInviteResultDto(sent, skipped, blocked, failed.Count, failed));
     }
 
-    [Authorize(Roles = "Admin")]
+    [RequirePermission(Permissions.UsersRevoke)]
     [HttpPost("{id:guid}/deactivate")]
-    public async Task<ActionResult<AdminUserDto>> Deactivate(Guid id)
+    public async Task<ActionResult<AdminUserDto>> Deactivate(Guid id, [FromBody] AccessChangeRequest? request)
     {
         if (id == _currentUser.UserId)
             return BadRequest(new { message = "Você não pode desativar a sua própria conta." });
@@ -258,25 +316,57 @@ public class AdminUsersController : ControllerBase
         var user = await _dbContext.Users.Include(u => u.Department).FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
             return NotFound();
+        if (!await CanActOnAsync(user))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Só administradores revogam o acesso de administradores e gestores de RH." });
 
         user.IsActive = false;
         await _dbContext.SaveChangesAsync();
         await _sessions.RevokeAllAsync(user.Id);
+        await _audit.LogAsync(AuditService.Actions.UserRevoked, $"Revogou o acesso de {user.Email}.", user, CleanReason(request?.Reason));
         return Ok(ToDto(user, await HasPendingInvitationAsync(user.Id)));
     }
 
-    [Authorize(Roles = "Admin")]
+    [RequirePermission(Permissions.UsersAuthorize)]
     [HttpPost("{id:guid}/reactivate")]
-    public async Task<ActionResult<AdminUserDto>> Reactivate(Guid id)
+    public async Task<ActionResult<AdminUserDto>> Reactivate(Guid id, [FromBody] AccessChangeRequest? request)
     {
         var user = await _dbContext.Users.Include(u => u.Department).FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
             return NotFound();
+        if (!await CanActOnAsync(user))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Só administradores liberam o acesso de administradores e gestores de RH." });
 
         user.IsActive = true;
         await _dbContext.SaveChangesAsync();
+        await _audit.LogAsync(AuditService.Actions.UserAuthorized, $"Liberou o acesso de {user.Email}.", user, CleanReason(request?.Reason));
         return Ok(ToDto(user, await HasPendingInvitationAsync(user.Id)));
     }
+
+    // Ao virar RH, recebe o conjunto padrão (o Admin ajusta depois); ao deixar de ser RH, perde todas.
+    private async Task ApplyRolePermissionsAsync(User user, UserRole previousRole)
+    {
+        if (previousRole == UserRole.HR)
+            _dbContext.UserPermissions.RemoveRange(await _dbContext.UserPermissions.Where(p => p.UserId == user.Id).ToListAsync());
+        if (user.Role == UserRole.HR && !await _dbContext.UserPermissions.AnyAsync(p => p.UserId == user.Id))
+            GrantHrDefaults(user);
+    }
+
+    private void GrantHrDefaults(User user)
+    {
+        foreach (var permission in Permissions.HrDefaults)
+            _dbContext.UserPermissions.Add(new UserPermission { UserId = user.Id, Permission = permission, GrantedById = _currentUser.UserId });
+    }
+
+    private static string? CleanReason(string? reason) =>
+        string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+
+    public static string RoleLabel(UserRole role) => role switch
+    {
+        UserRole.Admin => "Administrador",
+        UserRole.HR => "Gestor de RH",
+        UserRole.Leader => "Líder",
+        _ => "Colaborador"
+    };
 
     private async Task<bool> TrySendInvitationAsync(User user, string organizationName)
     {
@@ -296,8 +386,8 @@ public class AdminUsersController : ControllerBase
     {
         if (request.File == null || request.File.Length == 0)
             return (null, BadRequest(new { message = "Envie o arquivo JSON exportado do Admin Console." }));
-        if (request.DeactivateSuspended && !IsAdmin)
-            return (null, StatusCode(StatusCodes.Status403Forbidden, new { message = "Só administradores podem desativar usuários na importação." }));
+        if (request.DeactivateSuspended && !await _permissions.HasAsync(Permissions.UsersRevoke))
+            return (null, StatusCode(StatusCodes.Status403Forbidden, new { message = "Desativar usuários na importação exige a permissão de revogar acesso." }));
 
         List<DirectoryEntry> entries;
         try

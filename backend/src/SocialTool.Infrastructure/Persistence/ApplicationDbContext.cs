@@ -26,6 +26,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserToken> UserTokens => Set<UserToken>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<UserImport> UserImports => Set<UserImport>();
+    public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -271,6 +273,33 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(i => i.ImportedById)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<UserPermission>(entity =>
+        {
+            entity.ToTable("user_permissions");
+            entity.HasIndex(p => new { p.UserId, p.Permission }).IsUnique();
+            entity.Property(p => p.Permission).HasMaxLength(64).IsRequired();
+
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.ToTable("audit_logs");
+            entity.HasIndex(a => a.CreatedAt);
+            entity.HasIndex(a => a.ActorId);
+            entity.HasIndex(a => a.TargetUserId);
+            entity.HasIndex(a => a.Action);
+            entity.Property(a => a.ActorName).HasMaxLength(150).IsRequired();
+            entity.Property(a => a.Action).HasMaxLength(64).IsRequired();
+            entity.Property(a => a.TargetName).HasMaxLength(150);
+            entity.Property(a => a.Summary).HasMaxLength(500).IsRequired();
+            entity.Property(a => a.Reason).HasMaxLength(500);
+            entity.Property(a => a.IpAddress).HasMaxLength(45);
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>

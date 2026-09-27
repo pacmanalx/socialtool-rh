@@ -9,9 +9,11 @@ import {
   CalendarCheck,
   Building2,
   Sparkles,
-  UserCog
+  UserCog,
+  ScrollText
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { P } from '../../permissions';
 
 interface SidebarProps {
   currentTab: string;
@@ -19,8 +21,11 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) => {
-  const { user } = useAuth();
-  const canManageUsers = user?.role === 'Admin' || user?.role === 'HR';
+  const { can } = useAuth();
+  const adminItems = [
+    { id: 'admin-users', label: 'Usuários', icon: UserCog, allowed: can(P.UsersView) },
+    { id: 'admin-audit', label: 'Auditoria', icon: ScrollText, allowed: can(P.AuditView) },
+  ].filter((item) => item.allowed);
   const menuItems = [
     { id: 'feed', label: 'Mural Social', icon: MessageSquare, badge: 'Live' },
     { id: 'recognitions', label: 'Reconhecimentos & Moedas', icon: Award },
@@ -90,22 +95,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
           })}
         </div>
 
-        {canManageUsers && (
+        {adminItems.length > 0 && (
           <div className="pt-4">
             <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
               Administração
             </p>
-            <button
-              onClick={() => setCurrentTab('admin-users')}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${
-                currentTab === 'admin-users'
-                  ? 'bg-indigo-50 text-indigo-700 shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <UserCog className={`w-4 h-4 ${currentTab === 'admin-users' ? 'text-indigo-600' : 'text-slate-400'}`} />
-              <span>Usuários</span>
-            </button>
+            {adminItems.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setCurrentTab(id)}
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${
+                  currentTab === id
+                    ? 'bg-indigo-50 text-indigo-700 shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${currentTab === id ? 'text-indigo-600' : 'text-slate-400'}`} />
+                <span>{label}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>

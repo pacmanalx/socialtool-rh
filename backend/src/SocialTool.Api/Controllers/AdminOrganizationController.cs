@@ -1,7 +1,8 @@
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SocialTool.Api.Authorization;
 using SocialTool.Api.DTOs;
+using SocialTool.Api.Services;
 using SocialTool.Domain.Entities;
 using SocialTool.Infrastructure.Persistence;
 
@@ -10,7 +11,7 @@ namespace SocialTool.Api.Controllers;
 // Configurações da organização desta instalação: quem instala ajusta aqui, pela interface.
 [ApiController]
 [Route("api/admin/organization")]
-[Authorize(Roles = "Admin")]
+[RequireAdmin]
 public partial class AdminOrganizationController : ControllerBase
 {
     private readonly ApplicationDbContext _dbContext;
@@ -27,7 +28,7 @@ public partial class AdminOrganizationController : ControllerBase
         Ok(ToDto(await _dbContext.GetOrganizationAsync()));
 
     [HttpPut]
-    public async Task<ActionResult<OrganizationSettingsDto>> Update([FromBody] UpdateOrganizationSettingsRequest request)
+    public async Task<ActionResult<OrganizationSettingsDto>> Update([FromBody] UpdateOrganizationSettingsRequest request, [FromServices] AuditService audit)
     {
         var name = request.Name?.Trim() ?? string.Empty;
         var currency = request.CurrencyName?.Trim() ?? string.Empty;
@@ -55,6 +56,8 @@ public partial class AdminOrganizationController : ControllerBase
         organization.MonthlyCoinsQuota = request.MonthlyCoinsQuota;
         organization.SetGoogleWorkspaceDomains(domains);
         await _dbContext.SaveChangesAsync();
+        await audit.LogAsync(AuditService.Actions.OrganizationUpdated,
+            $"Atualizou a organização: nome \"{name}\", moeda \"{currency}\", cota {request.MonthlyCoinsQuota}, domínios Google: {(domains.Count == 0 ? "nenhum" : string.Join(", ", domains))}.");
         return Ok(ToDto(organization));
     }
 
